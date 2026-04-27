@@ -4,712 +4,216 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Engine</title>
-    
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
     <style>
         :root {
-            --bg: #ffffff;
-            --bg-secondary: #f8fafc;
-            --bg-card: #ffffff;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --input-bg: #f1f5f9;
-            --input-focus: #e0e7ff;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
-            --accent-light: #eef2ff;
-            --highlight: #fef08a;
-            --green: #059669;
-            --green-bg: #ecfdf5;
-            --red: #dc2626;
-            --red-bg: #fef2f2;
+            --bg: #ffffff; --bg-secondary: #f8fafc; --bg-card: #ffffff;
+            --text: #1e293b; --text-secondary: #64748b; --border: #e2e8f0;
+            --input-bg: #f1f5f9; --input-focus: #e0e7ff;
+            --accent: #6366f1; --accent-hover: #4f46e5; --accent-light: #eef2ff;
+            --highlight: #fef08a; --green: #059669; --green-bg: #ecfdf5;
+            --red: #dc2626; --red-bg: #fef2f2;
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
             --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
             --radius: 16px;
         }
-
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg: #0f172a;
-                --bg-secondary: #1e293b;
-                --bg-card: #1e293b;
-                --text: #f1f5f9;
-                --text-secondary: #94a3b8;
-                --border: #334155;
-                --input-bg: #1e293b;
-                --input-focus: #312e81;
-                --accent: #818cf8;
-                --accent-hover: #6366f1;
-                --accent-light: #1e1b4b;
-                --highlight: #854d0e;
-                --green: #34d399;
-                --green-bg: #064e3b;
-                --red: #f87171;
-                --red-bg: #7f1d1d;
-                --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-                --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+                --bg: #0f172a; --bg-secondary: #1e293b; --bg-card: #1e293b;
+                --text: #f1f5f9; --text-secondary: #94a3b8; --border: #334155;
+                --input-bg: #1e293b; --input-focus: #312e81;
+                --accent: #818cf8; --accent-hover: #6366f1; --accent-light: #1e1b4b;
+                --highlight: #854d0e; --green: #34d399; --green-bg: #064e3b;
+                --red: #f87171; --red-bg: #7f1d1d;
             }
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 80%, var(--accent-light) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, var(--accent-light) 0%, transparent 50%);
-            opacity: 0.4;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Top Bar */
-        .topbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 12px;
-            z-index: 100;
-        }
-
-        .user-pill {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 16px 8px 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: var(--shadow);
-        }
-        .user-pill:hover {
-            border-color: var(--accent);
-            box-shadow: var(--shadow-lg);
-        }
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .user-name {
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .btn-signin {
-            padding: 10px 24px;
-            background: white;
-            color: #1e293b;
-            border: 1px solid #e2e8f0;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            box-shadow: var(--shadow);
-        }
-        .btn-signin:hover {
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent);
-        }
-        .btn-signin img {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* User dropdown */
-        .user-dropdown {
-            position: absolute;
-            top: 60px;
-            right: 24px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            min-width: 220px;
-            display: none;
-            z-index: 101;
-            overflow: hidden;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s ease, color 0.3s ease; -webkit-font-smoothing: antialiased; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 20% 80%, var(--accent-light) 0%, transparent 50%), radial-gradient(circle at 80% 20%, var(--accent-light) 0%, transparent 50%); opacity: 0.4; pointer-events: none; z-index: 0; }
+        .topbar { position: fixed; top: 0; left: 0; right: 0; padding: 12px 24px; display: flex; justify-content: flex-end; align-items: center; gap: 12px; z-index: 100; }
+        .user-pill { display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 50px; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow); }
+        .user-pill:hover { border-color: var(--accent); box-shadow: var(--shadow-lg); }
+        .user-avatar-placeholder { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .user-name { font-size: 0.9rem; font-weight: 500; }
+        .btn-signin { padding: 10px 24px; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: 50px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; box-shadow: var(--shadow); }
+        .btn-signin:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); }
+        .user-dropdown { position: absolute; top: 60px; right: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); min-width: 220px; display: none; z-index: 101; overflow: hidden; }
         .user-dropdown.active { display: block; }
-
-        .dropdown-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .dropdown-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-        }
-        .dropdown-info .name {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        .dropdown-info .email {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-        }
-        .dropdown-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            border: none;
-            background: none;
-            color: var(--text);
-            width: 100%;
-            text-align: left;
-        }
+        .dropdown-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .dropdown-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .dropdown-info .name { font-weight: 600; font-size: 0.95rem; }
+        .dropdown-info .email { color: var(--text-secondary); font-size: 0.8rem; }
+        .dropdown-item { padding: 12px 16px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border: none; background: none; color: var(--text); width: 100%; text-align: left; }
         .dropdown-item:hover { background: var(--accent-light); }
         .dropdown-item.danger { color: var(--red); }
         .dropdown-item.danger:hover { background: var(--red-bg); }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            padding-top: 60px;
-            position: relative;
-            z-index: 1;
-        }
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; box-shadow: var(--shadow-lg); }
+        .modal h2 { margin-bottom: 4px; }
+        .modal p { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px; }
+        .modal input { width: 100%; padding: 12px 14px; background: var(--bg); border: 2px solid var(--border); color: var(--text); border-radius: 8px; outline: none; font-size: 0.95rem; margin-bottom: 12px; }
+        .modal input:focus { border-color: var(--accent); }
+        .modal .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+        .modal .btn-primary { background: var(--accent); color: white; }
+        .modal .btn-primary:hover { background: var(--accent-hover); }
+        .modal .btn-close { margin-top: 8px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+        .modal .error { background: var(--red-bg); color: var(--red); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; display: none; }
 
-        /* Header */
-        .header {
-            text-align: center;
-            padding: 40px 0 10px;
-            transition: padding 0.3s ease;
-        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; padding-top: 60px; position: relative; z-index: 1; }
+        .header { text-align: center; padding: 40px 0 10px; transition: padding 0.3s ease; }
         .header.compact { padding: 10px 0 10px; }
-
-        .logo {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            display: inline-block;
-            animation: float 3s ease-in-out infinite;
-            cursor: pointer;
-        }
+        .logo { font-size: 4rem; margin-bottom: 10px; display: inline-block; animation: float 3s ease-in-out infinite; cursor: pointer; }
         .header.compact .logo { font-size: 2.5rem; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
-            transition: font-size 0.3s ease;
-        }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        h1 { font-size: 3.5rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; transition: font-size 0.3s ease; }
         .header.compact h1 { font-size: 2rem; }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-top: 8px;
-            transition: opacity 0.3s ease;
-        }
+        .subtitle { color: var(--text-secondary); font-size: 1.1rem; margin-top: 8px; transition: opacity 0.3s ease; }
         .header.compact .subtitle { opacity: 0; height: 0; overflow: hidden; }
-
-        .index-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--accent-light);
-            color: var(--accent);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Search */
+        .index-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-light); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .search-section { margin-bottom: 30px; }
-
-        .search-box {
-            display: flex;
-            gap: 8px;
-            background: var(--bg-card);
-            padding: 8px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border);
-            position: relative;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 18px 24px;
-            font-size: 1.15rem;
-            background: var(--input-bg);
-            border: 2px solid transparent;
-            color: var(--text);
-            border-radius: 12px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
+        .search-box { display: flex; gap: 8px; background: var(--bg-card); padding: 8px; border-radius: var(--radius); box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+        .search-input-wrapper { flex: 1; position: relative; }
+        .search-box input { width: 100%; padding: 18px 24px; font-size: 1.15rem; background: var(--input-bg); border: 2px solid transparent; color: var(--text); border-radius: 12px; outline: none; transition: all 0.3s ease; }
         .search-box input::placeholder { color: var(--text-secondary); }
-
-        .search-box input:focus {
-            border-color: var(--accent);
-            background: var(--input-focus);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-        }
-
-        .suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0; right: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-top: 4px;
-            box-shadow: var(--shadow-lg);
-            z-index: 10;
-            display: none;
-            overflow: hidden;
-        }
+        .search-box input:focus { border-color: var(--accent); background: var(--input-focus); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-top: 4px; box-shadow: var(--shadow-lg); z-index: 10; display: none; overflow: hidden; }
         .suggestions.active { display: block; }
-
-        .suggestion-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            justify-content: space-between;
-        }
-        .suggestion-item:hover,
-        .suggestion-item.active {
-            background: var(--accent-light);
-            color: var(--accent);
-        }
-        .suggestion-item .history-badge {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
-
-        .btn-search {
-            padding: 18px 28px;
-            font-size: 1.1rem;
-            background: var(--gradient);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        .btn-search:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-lucky {
-            padding: 18px 24px;
-            font-size: 1.05rem;
-            background: var(--bg-secondary);
-            color: var(--text);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        .btn-lucky:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .stats-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 16px 0;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            min-height: 24px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        /* Results */
-        .results-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .result {
-            background: var(--bg-card);
-            padding: 24px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            outline: none;
-        }
-
-        .result::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 4px;
-            background: var(--gradient);
-            border-radius: 0 4px 4px 0;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .result:hover,
-        .result:focus,
-        .result.selected {
-            transform: translateX(4px);
-            border-color: var(--accent);
-            box-shadow: var(--shadow-lg);
-        }
-        .result.selected::before,
-        .result:hover::before { opacity: 1; }
-        .result.selected {
-            background: var(--accent-light);
-            border-color: var(--accent);
-        }
-
-        .result-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .result-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--accent);
-            text-decoration: none;
-            display: block;
-            margin-bottom: 6px;
-            line-height: 1.3;
-            flex: 1;
-        }
+        .suggestion-item { padding: 12px 20px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 0.95rem; justify-content: space-between; }
+        .suggestion-item:hover, .suggestion-item.active { background: var(--accent-light); color: var(--accent); }
+        .btn-search { padding: 18px 28px; font-size: 1.1rem; background: var(--gradient); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; white-space: nowrap; }
+        .btn-search:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(99,102,241,0.4); }
+        .btn-lucky { padding: 18px 24px; font-size: 1.05rem; background: var(--bg-secondary); color: var(--text); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; }
+        .btn-lucky:hover { border-color: var(--accent); color: var(--accent); }
+        .stats-bar { display: flex; align-items: center; justify-content: space-between; margin: 16px 0; color: var(--text-secondary); font-size: 0.85rem; min-height: 24px; flex-wrap: wrap; gap: 10px; }
+        .results-container { display: flex; flex-direction: column; gap: 12px; }
+        .result { background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); transition: all 0.2s ease; cursor: pointer; position: relative; overflow: hidden; outline: none; }
+        .result::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--gradient); border-radius: 0 4px 4px 0; opacity: 0; transition: opacity 0.2s ease; }
+        .result:hover, .result:focus, .result.selected { transform: translateX(4px); border-color: var(--accent); box-shadow: var(--shadow-lg); }
+        .result.selected::before, .result:hover::before { opacity: 1; }
+        .result.selected { background: var(--accent-light); border-color: var(--accent); }
+        .result-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+        .result-title { font-size: 1.25rem; font-weight: 600; color: var(--accent); text-decoration: none; display: block; margin-bottom: 6px; line-height: 1.3; flex: 1; }
         .result-title:hover { text-decoration: underline; }
-
-        .result-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .btn-save, .btn-like {
-            padding: 6px 8px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            opacity: 0;
-        }
-        .result:hover .btn-save,
-        .result:hover .btn-like { opacity: 1; }
-        .btn-save:hover, .btn-like:hover { border-color: var(--accent); background: var(--accent-light); }
+        .result-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-save { padding: 6px 8px; background: transparent; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; opacity: 0; }
+        .result:hover .btn-save { opacity: 1; }
+        .btn-save:hover { border-color: var(--accent); background: var(--accent-light); }
         .btn-save.saved { background: var(--accent); color: white; border-color: var(--accent); opacity: 1; }
-
-        .result-url {
-            color: var(--green);
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            word-break: break-all;
-        }
-
+        .result-url { color: var(--green); font-size: 0.8rem; margin-bottom: 10px; word-break: break-all; }
         .result-snippet { color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem; }
-
-        .result-snippet mark {
-            background: var(--highlight);
-            color: inherit;
-            padding: 1px 4px;
-            border-radius: 3px;
-            font-weight: 500;
-        }
-
-        .result-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
-        }
-
+        .result-snippet mark { background: var(--highlight); color: inherit; padding: 1px 4px; border-radius: 3px; font-weight: 500; }
+        .result-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
         .result-score { color: var(--text-secondary); font-size: 0.75rem; }
-
         .load-more { text-align: center; margin-top: 20px; }
-        .btn-load-more {
-            padding: 12px 32px;
-            background: var(--bg-card);
-            color: var(--accent);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
+        .btn-load-more { padding: 12px 32px; background: var(--bg-card); color: var(--accent); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-weight: 500; transition: all 0.3s; font-size: 0.95rem; }
         .btn-load-more:hover { background: var(--accent-light); border-color: var(--accent); }
-
-        .keyboard-hint {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            margin-top: 12px;
-            opacity: 0.7;
-        }
-        .keyboard-hint kbd {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            font-family: inherit;
-        }
-
+        .keyboard-hint { text-align: center; color: var(--text-secondary); font-size: 0.75rem; margin-top: 12px; opacity: 0.7; }
+        .keyboard-hint kbd { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; font-family: inherit; }
         .empty-state { text-align: center; padding: 80px 20px; }
         .empty-state .icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.6; }
         .empty-state h2 { color: var(--text); font-size: 1.5rem; margin-bottom: 8px; }
         .empty-state p { color: var(--text-secondary); font-size: 1rem; max-width: 400px; margin: 0 auto; line-height: 1.6; }
-
-        /* Upload Section */
-        .upload-section {
-            margin-top: 50px;
-            padding: 32px;
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px dashed var(--border);
-            box-shadow: var(--shadow);
-        }
+        .upload-section { margin-top: 50px; padding: 32px; background: var(--bg-card); border-radius: var(--radius); border: 1px dashed var(--border); box-shadow: var(--shadow); }
         .upload-section:hover { border-color: var(--accent); }
         .upload-section h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
         .upload-section .hint { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px; }
         .upload-box { display: flex; gap: 10px; flex-wrap: wrap; }
-        .upload-box input {
-            flex: 1; min-width: 200px;
-            padding: 14px 20px; font-size: 1rem;
-            background: var(--input-bg);
-            border: 2px solid var(--border);
-            color: var(--text); border-radius: 12px; outline: none;
-        }
+        .upload-box input { flex: 1; min-width: 200px; padding: 14px 20px; font-size: 1rem; background: var(--input-bg); border: 2px solid var(--border); color: var(--text); border-radius: 12px; outline: none; }
         .upload-box input:focus { border-color: var(--accent); }
-        .upload-box button {
-            padding: 14px 28px; font-size: 1rem;
-            background: var(--bg-secondary); color: var(--text);
-            border: 2px solid var(--border); border-radius: 12px;
-            cursor: pointer; font-weight: 500; transition: all 0.3s ease; white-space: nowrap;
-        }
+        .upload-box button { padding: 14px 28px; font-size: 1rem; background: var(--bg-secondary); color: var(--text); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; }
         .upload-box button:hover { background: var(--accent); color: white; border-color: var(--accent); }
         #status { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: 500; display: none; }
         #status.active { display: block; animation: slideIn 0.3s ease; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .status-success { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
         .status-error { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
-
         .footer { text-align: center; padding: 40px 0; color: var(--text-secondary); font-size: 0.85rem; }
         .footer a { color: var(--accent); text-decoration: none; }
-        .footer a:hover { text-decoration: underline; }
-
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            display: inline-block;
-        }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 640px) {
-            .container { padding: 12px; padding-top: 60px; }
-            .topbar { padding: 8px 12px; }
-            .header { padding: 30px 0 10px; }
-            .logo { font-size: 3rem; }
-            h1 { font-size: 2.2rem; }
-            .header.compact h1 { font-size: 1.5rem; }
-            .search-box { flex-direction: column; gap: 8px; }
-            .search-box input, .btn-search, .btn-lucky { width: 100%; text-align: center; }
-            .result { padding: 18px; }
-            .upload-box { flex-direction: column; }
-            .upload-box button { width: 100%; }
-        }
+        @media (max-width: 640px) { .container { padding: 12px; padding-top: 60px; } .header { padding: 30px 0 10px; } .logo { font-size: 3rem; } h1 { font-size: 2.2rem; } .search-box { flex-direction: column; } .btn-search, .btn-lucky { width: 100%; } }
     </style>
 </head>
 <body>
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <h2>👤 Sign In</h2>
+            <p>Sign in to save searches, bookmark pages, and personalize your experience.</p>
+            <div class="error" id="loginError"></div>
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+            <button class="btn btn-primary" onclick="doLogin()">Sign In / Sign Up</button>
+            <button class="btn btn-close" onclick="closeLoginModal()">Cancel</button>
+        </div>
+    </div>
+
     <!-- Top Bar -->
     <div class="topbar" id="topbar">
-        <!-- Google Sign-In button (shown when NOT logged in) -->
-        <div id="g_id_signin" style="display:none;"></div>
-        <button class="btn-signin" id="btnGoogleSignin" onclick="triggerGoogleLogin()">
-            <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285F4' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z'/><path fill='%2334A853' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/><path fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/><path fill='%23EA4335' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/></svg>" alt="Google">
-            Sign in with Google
-        </button>
-
-        <!-- User pill (shown when logged in) -->
+        <button class="btn-signin" id="btnSignin" onclick="showLoginModal()">👤 Sign In</button>
         <div class="user-pill" id="userPill" style="display:none;" onclick="toggleDropdown()">
-            <img class="user-avatar" id="userAvatar" src="" alt="">
+            <div class="user-avatar-placeholder">👤</div>
             <span class="user-name" id="userDisplayName"></span>
         </div>
-
-        <!-- Dropdown -->
         <div class="user-dropdown" id="userDropdown">
             <div class="dropdown-header">
-                <img class="dropdown-avatar" id="dropdownAvatar" src="" alt="">
+                <div class="dropdown-avatar-placeholder">👤</div>
                 <div class="dropdown-info">
                     <div class="name" id="dropdownName"></div>
-                    <div class="email" id="dropdownEmail"></div>
+                    <div class="email" id="dropdownRole"></div>
                 </div>
             </div>
-            <button class="dropdown-item" onclick="window.location.href='/admin.html'">
-                ⚙️ Search Console
-            </button>
-            <button class="dropdown-item" onclick="showSavedPages()">
-                📑 Saved Pages
-            </button>
-            <button class="dropdown-item" onclick="showHistory()">
-                🕐 Search History
-            </button>
-            <button class="dropdown-item danger" onclick="signOut()">
-                🚪 Sign Out
-            </button>
+            <button class="dropdown-item" onclick="window.location.href='/admin.html'">⚙️ Search Console</button>
+            <button class="dropdown-item" onclick="showSavedPages()">📑 Saved Pages</button>
+            <button class="dropdown-item" onclick="showHistory()">🕐 Search History</button>
+            <button class="dropdown-item danger" onclick="signOut()">🚪 Sign Out</button>
         </div>
     </div>
 
     <div class="container">
-        <!-- Header -->
         <div class="header" id="header">
             <div class="logo" onclick="resetSearch()">🔍</div>
             <h1>Search</h1>
             <p class="subtitle">Discover the web, one page at a time</p>
-            <div class="index-badge" id="indexBadge" style="display:none">
-                📚 <span id="indexCount">0</span> pages indexed
-            </div>
+            <div class="index-badge" id="indexBadge" style="display:none">📚 <span id="indexCount">0</span> pages indexed</div>
         </div>
-
-        <!-- Search -->
         <div class="search-section">
             <div class="search-box">
                 <div class="search-input-wrapper">
-                    <input 
-                        type="text" id="q" placeholder="Search the web..." 
-                        autofocus autocomplete="off"
-                    >
+                    <input type="text" id="q" placeholder="Search the web..." autofocus autocomplete="off">
                     <div class="suggestions" id="suggestions"></div>
                 </div>
-                <button class="btn-search" onclick="search()">
-                    <span id="searchText">🔍 Search</span>
-                    <span id="searchSpinner" class="spinner" style="display:none"></span>
-                </button>
+                <button class="btn-search" onclick="search()"><span id="searchText">🔍 Search</span><span id="searchSpinner" class="spinner" style="display:none"></span></button>
                 <button class="btn-lucky" onclick="feelingLucky()">🎲 I'm Feeling Lucky</button>
             </div>
-            <div class="stats-bar">
-                <span id="stats"></span>
-                <span class="keyboard-hint" id="keyboardHint" style="display:none">
-                    <kbd>↑</kbd><kbd>↓</kbd> Navigate &middot; <kbd>Enter</kbd> Open &middot; <kbd>/</kbd> Focus
-                </span>
-            </div>
+            <div class="stats-bar"><span id="stats"></span><span class="keyboard-hint" id="keyboardHint" style="display:none"><kbd>↑</kbd><kbd>↓</kbd> Navigate · <kbd>Enter</kbd> Open · <kbd>/</kbd> Focus</span></div>
         </div>
-
-        <!-- Results -->
         <div class="results-container" id="results"></div>
-        <div class="load-more" id="loadMore" style="display:none">
-            <button class="btn-load-more" onclick="loadMore()">📄 Load More Results</button>
-        </div>
-
-        <!-- Upload -->
+        <div class="load-more" id="loadMore" style="display:none"><button class="btn-load-more" onclick="loadMore()">📄 Load More</button></div>
         <div class="upload-section">
             <h3>📤 Submit a URL</h3>
             <p class="hint">Found something? Add it to the crawl queue.</p>
-            <div class="upload-box">
-                <input type="url" id="url" placeholder="https://example.com/article">
-                <button onclick="upload()">Add to Queue</button>
-            </div>
+            <div class="upload-box"><input type="url" id="url" placeholder="https://example.com"><button onclick="upload()">Add to Queue</button></div>
             <div id="status"></div>
         </div>
-
-        <div class="footer">
-            <a href="/admin.html">Console</a> &middot; Auto-discovers &middot; Updates every 15 min
-        </div>
+        <div class="footer"><a href="/admin.html">Console</a> · Auto-discovers · Updates every hour</div>
     </div>
 
-    <!-- Google Identity Services -->
     <script>
-        // ===== GOOGLE AUTH CONFIG =====
-        // Replace with your Google Cloud Console OAuth client ID
-        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
-        
         let currentUser = null;
         let searchHistory = [];
         let savedPages = [];
+        let currentQuery = '';
+        let allResults = [];
+        let displayedCount = 10;
+        let selectedIndex = -1;
+        let totalIndexed = 0;
 
-        // Load saved user from localStorage
+        // Load user
         function loadUser() {
             const stored = localStorage.getItem('search_user');
             if (stored) {
@@ -718,78 +222,51 @@
                 loadUserData();
             }
         }
-
         function updateUI() {
             if (currentUser) {
-                document.getElementById('btnGoogleSignin').style.display = 'none';
-                document.getElementById('g_id_signin').style.display = 'none';
+                document.getElementById('btnSignin').style.display = 'none';
                 document.getElementById('userPill').style.display = 'flex';
-                document.getElementById('userAvatar').src = currentUser.picture || '';
-                document.getElementById('userDisplayName').textContent = currentUser.name?.split(' ')[0] || 'User';
-                document.getElementById('dropdownAvatar').src = currentUser.picture || '';
-                document.getElementById('dropdownName').textContent = currentUser.name || 'User';
-                document.getElementById('dropdownEmail').textContent = currentUser.email || '';
+                document.getElementById('userDisplayName').textContent = currentUser.username;
+                document.getElementById('dropdownName').textContent = currentUser.username;
+                document.getElementById('dropdownRole').textContent = currentUser.role === 'admin' ? 'Admin' : currentUser.role === 'editor' ? 'Editor' : 'Member';
             } else {
-                document.getElementById('btnGoogleSignin').style.display = 'flex';
+                document.getElementById('btnSignin').style.display = 'flex';
                 document.getElementById('userPill').style.display = 'none';
             }
         }
 
-        // Google Sign-In callback
-        function handleGoogleResponse(response) {
-            if (response.credential) {
-                const payload = parseJwt(response.credential);
-                currentUser = {
-                    name: payload.name,
-                    email: payload.email,
-                    picture: payload.picture,
-                    sub: payload.sub
-                };
-                localStorage.setItem('search_user', JSON.stringify(currentUser));
-                updateUI();
-                saveUserToBackend();
-                loadUserData();
-            }
-        }
-
-        function parseJwt(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/
-
-g, '+').replace(/_/g, '/');
-            return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => 
-                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-            ).join('')));
-        }
-
-        function triggerGoogleLogin() {
-            // Initialize Google Sign-In
-            if (window.google && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleResponse,
-                    auto_select: false
+        // Login modal
+        function showLoginModal() { document.getElementById('loginModal').classList.add('active'); document.getElementById('loginUsername').focus(); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); document.getElementById('loginError').style.display = 'none'; }
+        
+        async function doLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const err = document.getElementById('loginError');
+            if (!username || !password) { err.textContent = 'Fill in all fields'; err.style.display = 'block'; return; }
+            try {
+                const res = await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'login', username, password })
                 });
-                google.accounts.id.prompt();
-            } else {
-                // Fallback for demo: create anonymous user
-                currentUser = {
-                    name: 'Demo User',
-                    email: 'demo@search.local',
-                    picture: '',
-                    sub: 'demo-' + Date.now()
-                };
-                localStorage.setItem('search_user', JSON.stringify(currentUser));
-                updateUI();
-                saveUserToBackend();
-                loadUserData();
-            }
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    localStorage.setItem('search_user', JSON.stringify(currentUser));
+                    updateUI();
+                    closeLoginModal();
+                    document.getElementById('loginUsername').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    loadUserData();
+                } else {
+                    err.textContent = data.error || 'Login failed';
+                    err.style.display = 'block';
+                }
+            } catch(e) { err.textContent = 'Connection failed'; err.style.display = 'block'; }
         }
 
         function signOut() {
-            if (window.google && google.accounts) {
-                google.accounts.id.disableAutoSelect();
-            }
             localStorage.removeItem('search_user');
             currentUser = null;
             searchHistory = [];
@@ -798,157 +275,73 @@ g, '+').replace(/_/g, '/');
             document.getElementById('userDropdown').classList.remove('active');
         }
 
-        function toggleDropdown() {
-            document.getElementById('userDropdown').classList.toggle('active');
-        }
+        function toggleDropdown() { document.getElementById('userDropdown').classList.toggle('active'); }
+        document.addEventListener('click', (e) => { if (!e.target.closest('.user-pill') && !e.target.closest('.user-dropdown')) document.getElementById('userDropdown').classList.remove('active'); });
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') doLogin(); });
 
-        // Close dropdown on outside click
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.user-pill') && !e.target.closest('.user-dropdown')) {
-                document.getElementById('userDropdown').classList.remove('active');
-            }
-        });
-
-        // ===== USER DATA (Saved to Back4App) =====
-        async function saveUserToBackend() {
-            if (!currentUser) return;
-            try {
-                await fetch('/api/index', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'saveUser',
-                        user: currentUser
-                    })
-                });
-            } catch(e) {}
-        }
-
+        // User data
         async function loadUserData() {
             if (!currentUser) return;
             try {
                 const res = await fetch('/api/index', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'getUserData',
-                        userId: currentUser.sub || currentUser.email
-                    })
+                    body: JSON.stringify({ action: 'getUserData', userId: currentUser.username })
                 });
                 const data = await res.json();
                 if (data.history) searchHistory = data.history;
                 if (data.saved) savedPages = data.saved;
             } catch(e) {}
         }
-
         async function saveSearchQuery(query) {
             if (!currentUser || !query) return;
             searchHistory.unshift({ query, time: Date.now() });
             if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
-            
             try {
                 await fetch('/api/index', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'saveHistory',
-                        userId: currentUser.sub || currentUser.email,
-                        history: searchHistory
-                    })
+                    body: JSON.stringify({ action: 'saveHistory', userId: currentUser.username, history: searchHistory })
                 });
             } catch(e) {}
         }
-
         async function toggleSavePage(url, title, snippet) {
-            if (!currentUser) {
-                alert('Sign in to save pages!');
-                return;
-            }
-            
+            if (!currentUser) { showLoginModal(); return; }
             const exists = savedPages.findIndex(p => p.url === url);
-            if (exists >= 0) {
-                savedPages.splice(exists, 1);
-            } else {
-                savedPages.unshift({ url, title, snippet, savedAt: Date.now() });
-                if (savedPages.length > 100) savedPages = savedPages.slice(0, 100);
-            }
-            
+            if (exists >= 0) savedPages.splice(exists, 1);
+            else { savedPages.unshift({ url, title, snippet, savedAt: Date.now() }); if (savedPages.length > 100) savedPages = savedPages.slice(0, 100); }
             try {
                 await fetch('/api/index', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'savePages',
-                        userId: currentUser.sub || currentUser.email,
-                        saved: savedPages
-                    })
+                    body: JSON.stringify({ action: 'savePages', userId: currentUser.username, saved: savedPages })
                 });
             } catch(e) {}
-            
             renderResults();
         }
-
         function showSavedPages() {
             document.getElementById('userDropdown').classList.remove('active');
-            if (savedPages.length === 0) {
-                allResults = [];
-                renderResults();
-                document.getElementById('stats').innerHTML = '📑 No saved pages yet. Save pages by clicking 💾 on results!';
-                return;
-            }
-            allResults = savedPages.map(p => ({
-                url: p.url,
-                title: p.title,
-                snippet: p.snippet,
-                score: 1,
-                saved: true
-            }));
-            currentQuery = '';
-            displayedCount = 10;
+            if (savedPages.length === 0) { allResults = []; renderResults(); document.getElementById('stats').innerHTML = '📑 No saved pages yet.'; return; }
+            allResults = savedPages.map(p => ({ url: p.url, title: p.title, snippet: p.snippet, score: 1, saved: true }));
+            currentQuery = ''; displayedCount = 10;
             renderResults();
             document.getElementById('stats').innerHTML = `📑 <strong>${savedPages.length}</strong> saved pages`;
             document.getElementById('header').classList.add('compact');
         }
-
         function showHistory() {
             document.getElementById('userDropdown').classList.remove('active');
-            if (searchHistory.length === 0) {
-                document.getElementById('results').innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">🕐</div>
-                        <h2>No search history yet</h2>
-                        <p>Start searching to build your history!</p>
-                    </div>
-                `;
-                document.getElementById('stats').innerHTML = '';
-                return;
-            }
-            document.getElementById('results').innerHTML = searchHistory.map(h => `
-                <div class="result" onclick="document.getElementById('q').value='${escapeHtml(h.query)}';search()">
-                    <span style="color:var(--accent);font-weight:600">🕐 ${escapeHtml(h.query)}</span>
-                    <span style="color:var(--text-secondary);font-size:0.8rem;float:right">${new Date(h.time).toLocaleDateString()}</span>
-                </div>
-            `).join('');
+            if (searchHistory.length === 0) { document.getElementById('results').innerHTML = '<div class="empty-state"><div class="icon">🕐</div><h2>No search history</h2></div>'; document.getElementById('stats').innerHTML = ''; return; }
+            document.getElementById('results').innerHTML = searchHistory.map(h => `<div class="result" onclick="document.getElementById('q').value='${escapeHtml(h.query)}';search()"><span style="color:var(--accent);font-weight:600">🕐 ${escapeHtml(h.query)}</span><span style="color:var(--text-secondary);font-size:0.8rem;float:right">${new Date(h.time).toLocaleDateString()}</span></div>`).join('');
             document.getElementById('stats').innerHTML = `🕐 <strong>${searchHistory.length}</strong> recent searches`;
             document.getElementById('header').classList.add('compact');
         }
 
-        // ===== SEARCH FUNCTIONS =====
-        let currentQuery = '';
-        let allResults = [];
-        let displayedCount = 10;
-        let selectedIndex = -1;
-        let totalIndexed = 0;
-
+        // Search
         async function fetchIndexSize() {
             try {
                 const res = await fetch('/api/index?q=');
                 const data = await res.json();
-                if (data.totalIndexed) {
-                    totalIndexed = data.totalIndexed;
-                    document.getElementById('indexCount').textContent = totalIndexed.toLocaleString();
-                    document.getElementById('indexBadge').style.display = 'inline-flex';
-                }
+                if (data.totalIndexed) { totalIndexed = data.totalIndexed; document.getElementById('indexCount').textContent = totalIndexed.toLocaleString(); document.getElementById('indexBadge').style.display = 'inline-flex'; }
             } catch(e) {}
         }
         fetchIndexSize();
@@ -956,44 +349,26 @@ g, '+').replace(/_/g, '/');
         async function search() {
             const q = document.getElementById('q').value.trim();
             if (!q) return;
-
-            currentQuery = q;
-            selectedIndex = -1;
+            currentQuery = q; selectedIndex = -1;
             document.getElementById('suggestions').classList.remove('active');
-
-            const searchBtn = document.getElementById('searchText');
-            const spinner = document.getElementById('searchSpinner');
-            searchBtn.style.display = 'none';
-            spinner.style.display = 'inline-block';
+            document.getElementById('searchText').style.display = 'none';
+            document.getElementById('searchSpinner').style.display = 'inline-block';
             document.getElementById('header').classList.add('compact');
-
-            // Save to history
             saveSearchQuery(q);
-
             try {
-                const res = await fetch(`/api/index?q=${encodeURIComponent(q)}&limit=50${currentUser ? '&userId=' + encodeURIComponent(currentUser.sub || currentUser.email) : ''}`);
+                const res = await fetch(`/api/index?q=${encodeURIComponent(q)}&limit=50`);
                 const data = await res.json();
-                allResults = (data.results || []).map(r => ({
-                    ...r,
-                    saved: savedPages.some(p => p.url === r.url)
-                }));
+                allResults = (data.results || []).map(r => ({ ...r, saved: savedPages.some(p => p.url === r.url) }));
                 displayedCount = 10;
                 totalIndexed = data.totalIndexed || totalIndexed;
-
                 document.getElementById('indexCount').textContent = totalIndexed.toLocaleString();
                 document.getElementById('indexBadge').style.display = 'inline-flex';
                 renderResults();
             } catch (e) {
-                document.getElementById('results').innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">⚡</div>
-                        <h2>Something went wrong</h2>
-                        <p>Couldn't connect to the search server.</p>
-                    </div>
-                `;
+                document.getElementById('results').innerHTML = '<div class="empty-state"><div class="icon">⚡</div><h2>Something went wrong</h2></div>';
             } finally {
-                searchBtn.style.display = 'inline';
-                spinner.style.display = 'none';
+                document.getElementById('searchText').style.display = 'inline';
+                document.getElementById('searchSpinner').style.display = 'none';
             }
         }
 
@@ -1002,258 +377,69 @@ g, '+').replace(/_/g, '/');
             const resultsDiv = document.getElementById('results');
             const loadMoreDiv = document.getElementById('loadMore');
             const keyboardHint = document.getElementById('keyboardHint');
-
             if (allResults.length === 0) {
-                stats.innerHTML = currentQuery ? '' : '';
-                keyboardHint.style.display = 'none';
-                loadMoreDiv.style.display = 'none';
-                resultsDiv.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📭</div>
-                        <h2>${currentQuery ? `No results for "${escapeHtml(currentQuery)}"` : 'Search something!'}</h2>
-                        <p>${currentQuery ? 'Try different keywords or add new URLs below.' : 'Discover the web with our auto-crawling search engine.'}</p>
-                    </div>
-                `;
+                stats.innerHTML = ''; keyboardHint.style.display = 'none'; loadMoreDiv.style.display = 'none';
+                resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h2>${currentQuery ? `No results for "${escapeHtml(currentQuery)}"` : 'Search something!'}</h2></div>`;
                 return;
             }
-
             stats.innerHTML = `About <strong>${allResults.length}</strong> results`;
             keyboardHint.style.display = 'block';
-
             const toShow = allResults.slice(0, displayedCount);
             const words = currentQuery.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-
             resultsDiv.innerHTML = toShow.map((r, i) => `
-                <div class="result" tabindex="0" data-index="${i}" 
-                     onclick="openResult(${i})"
-                     onmouseenter="selectResult(${i})">
+                <div class="result" tabindex="0" data-index="${i}" onclick="openResult(${i})" onmouseenter="selectResult(${i})">
                     <div class="result-header">
-                        <a href="${escapeHtml(r.url)}" class="result-title" target="_blank" rel="noopener" onclick="event.stopPropagation()">
-                            ${escapeHtml(r.title || 'Untitled')}
-                        </a>
+                        <a href="${escapeHtml(r.url)}" class="result-title" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escapeHtml(r.title || 'Untitled')}</a>
                         <div class="result-actions">
-                            <button class="btn-save ${r.saved ? 'saved' : ''}" 
-                                    onclick="event.stopPropagation();toggleSavePage('${escapeHtml(r.url)}','${escapeHtml(r.title || '')}','${escapeHtml(r.snippet || '')}')" 
-                                    title="${r.saved ? 'Saved!' : 'Save page'}">
-                                ${r.saved ? '💾' : '📑'}
-                            </button>
+                            <button class="btn-save ${r.saved ? 'saved' : ''}" onclick="event.stopPropagation();toggleSavePage('${escapeHtml(r.url)}','${escapeHtml(r.title||'')}','${escapeHtml(r.snippet||'')}')">${r.saved ? '💾' : '📑'}</button>
                         </div>
                     </div>
                     <div class="result-url">🔗 ${escapeHtml(r.url)}</div>
-                    <div class="result-snippet">${highlightTerms(escapeHtml(r.snippet || ''), words)}</div>
-                    <div class="result-footer">
-                        <span class="result-score">⭐ ${r.score}</span>
-                        <span style="color: var(--text-secondary); font-size: 0.75rem">#${i + 1}</span>
-                    </div>
-                </div>
-            `).join('');
-
-            if (displayedCount < allResults.length) {
-                loadMoreDiv.style.display = 'block';
-            } else {
-                loadMoreDiv.style.display = 'none';
-            }
+                    <div class="result-snippet">${highlightTerms(escapeHtml(r.snippet||''), words)}</div>
+                    <div class="result-footer"><span class="result-score">⭐ ${r.score}</span><span style="color:var(--text-secondary);font-size:0.75rem">#${i+1}</span></div>
+                </div>`).join('');
+            loadMoreDiv.style.display = displayedCount < allResults.length ? 'block' : 'none';
         }
 
         function highlightTerms(text, words) {
-            let highlighted = text;
-            words.forEach(word => {
-                if (word.length < 2) return;
-                const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                highlighted = highlighted.replace(regex, '<mark>$1</mark>');
-            });
-            return highlighted;
+            let h = text;
+            words.forEach(w => { if (w.length > 1) { const r = new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi'); h = h.replace(r, '<mark>$1</mark>'); } });
+            return h;
         }
-
-        function loadMore() {
-            displayedCount += 10;
-            if (displayedCount > allResults.length) displayedCount = allResults.length;
-            renderResults();
-            const lastResult = document.querySelector(`.result[data-index="${displayedCount - 1}"]`);
-            if (lastResult) lastResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function selectResult(index) {
-            document.querySelectorAll('.result.selected').forEach(el => el.classList.remove('selected'));
-            selectedIndex = index;
-            const el = document.querySelector(`.result[data-index="${index}"]`);
-            if (el) { el.classList.add('selected'); el.focus(); }
-        }
-
-        function openResult(index) {
-            if (index >= 0 && index < allResults.length) {
-                window.open(allResults[index].url, '_blank');
-            }
-        }
-
-        async function feelingLucky() {
-            const q = document.getElementById('q').value.trim();
-            if (!q) {
-                const randomTerms = ['technology', 'science', 'internet', 'programming', 'web', 'computer', 'data', 'code'];
-                document.getElementById('q').value = randomTerms[Math.floor(Math.random() * randomTerms.length)];
-            }
-            await search();
-            if (allResults.length > 0) {
-                const luckyIndex = Math.floor(Math.random() * Math.min(5, allResults.length));
-                window.open(allResults[luckyIndex].url, '_blank');
-            }
-        }
-
-        function resetSearch() {
-            document.getElementById('q').value = '';
-            document.getElementById('results').innerHTML = '';
-            document.getElementById('stats').innerHTML = '';
-            document.getElementById('loadMore').style.display = 'none';
-            document.getElementById('keyboardHint').style.display = 'none';
-            document.getElementById('header').classList.remove('compact');
-            allResults = [];
-            currentQuery = '';
-            selectedIndex = -1;
-            document.getElementById('q').focus();
-        }
+        function loadMore() { displayedCount += 10; if (displayedCount > allResults.length) displayedCount = allResults.length; renderResults(); }
+        function selectResult(i) { document.querySelectorAll('.result.selected').forEach(e=>e.classList.remove('selected')); selectedIndex=i; const el=document.querySelector(`.result[data-index="${i}"]`); if(el){el.classList.add('selected');el.focus();} }
+        function openResult(i) { if(i>=0&&i<allResults.length) window.open(allResults[i].url,'_blank'); }
+        async function feelingLucky() { if(!document.getElementById('q').value.trim()){ document.getElementById('q').value=['technology','science','internet','programming','web'][Math.floor(Math.random()*5)]; } await search(); if(allResults.length>0) window.open(allResults[Math.floor(Math.random()*Math.min(5,allResults.length))].url,'_blank'); }
+        function resetSearch() { document.getElementById('q').value=''; document.getElementById('results').innerHTML=''; document.getElementById('stats').innerHTML=''; document.getElementById('loadMore').style.display='none'; document.getElementById('keyboardHint').style.display='none'; document.getElementById('header').classList.remove('compact'); allResults=[]; currentQuery=''; selectedIndex=-1; document.getElementById('q').focus(); }
 
         // Suggestions
-        let suggestTimeout;
-        document.getElementById('q').addEventListener('input', function() {
-            clearTimeout(suggestTimeout);
-            const val = this.value.trim();
-            const suggestionsDiv = document.getElementById('suggestions');
-            
-            if (!val || val.length < 2) {
-                suggestionsDiv.classList.remove('active');
-                return;
-            }
+        let st; document.getElementById('q').addEventListener('input',function(){ clearTimeout(st); const v=this.value.trim(); const sd=document.getElementById('suggestions'); if(!v||v.length<2){sd.classList.remove('active');return;} st=setTimeout(()=>{ const s=[]; if(currentUser&&searchHistory.length>0){ searchHistory.filter(h=>h.query.toLowerCase().includes(v.toLowerCase())).slice(0,3).forEach(m=>s.push({icon:'🕐',text:m.query,badge:'history'})); } s.push({icon:'🔍',text:v},{icon:'📖',text:v+' wikipedia'},{icon:'💻',text:v+' tutorial'},{icon:'📰',text:v+' news'}); sd.innerHTML=s.map(x=>`<div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(x.text)}')"><span>${x.icon} ${escapeHtml(x.text)}</span>${x.badge?`<span style="font-size:0.7rem;opacity:0.7">${x.badge}</span>`:''}</div>`).join(''); sd.classList.add('active'); },200); });
+        function selectSuggestion(t){ document.getElementById('q').value=t; document.getElementById('suggestions').classList.remove('active'); search(); }
+        document.addEventListener('click',e=>{if(!e.target.closest('.search-input-wrapper'))document.getElementById('suggestions').classList.remove('active');});
 
-            suggestTimeout = setTimeout(() => {
-                const suggestions = [];
-                // Add history suggestions first
-                if (currentUser && searchHistory.length > 0) {
-                    const matches = searchHistory.filter(h => h.query.toLowerCase().includes(val.toLowerCase())).slice(0, 3);
-                    matches.forEach(m => {
-                        suggestions.push({ icon: '🕐', text: m.query, badge: 'history' });
-                    });
-                }
-                // Add generic suggestions
-                suggestions.push(
-                    { icon: '🔍', text: val },
-                    { icon: '📖', text: val + ' wikipedia' },
-                    { icon: '💻', text: val + ' tutorial' },
-                    { icon: '📰', text: val + ' news' }
-                );
-
-                suggestionsDiv.innerHTML = suggestions.map(s => `
-                    <div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(s.text)}')">
-                        <span>${s.icon} ${escapeHtml(s.text)}</span>
-                        ${s.badge ? `<span class="history-badge">${s.badge}</span>` : ''}
-                    </div>
-                `).join('');
-                suggestionsDiv.classList.add('active');
-            }, 200);
-        });
-
-        function selectSuggestion(text) {
-            document.getElementById('q').value = text;
-            document.getElementById('suggestions').classList.remove('active');
-            search();
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-input-wrapper')) {
-                document.getElementById('suggestions').classList.remove('active');
-            }
-        });
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (allResults.length === 0) return;
-            const results = document.querySelectorAll('.result');
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (selectedIndex < Math.min(displayedCount, allResults.length) - 1) {
-                    selectResult(selectedIndex + 1);
-                }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (selectedIndex > 0) {
-                    selectResult(selectedIndex - 1);
-                } else if (selectedIndex === 0) {
-                    document.querySelectorAll('.result.selected').forEach(el => el.classList.remove('selected'));
-                    selectedIndex = -1;
-                    document.getElementById('q').focus();
-                }
-            } else if (e.key === 'Enter' && selectedIndex >= 0) {
-                e.preventDefault();
-                openResult(selectedIndex);
-            } else if (e.key === 'Escape') {
-                document.querySelectorAll('.result.selected').forEach(el => el.classList.remove('selected'));
-                selectedIndex = -1;
-                document.getElementById('q').focus();
-            } else if (e.key === '/' && document.activeElement !== document.getElementById('q') && document.activeElement !== document.getElementById('url')) {
-                e.preventDefault();
-                document.getElementById('q').focus();
-            }
+        // Keyboard
+        document.addEventListener('keydown',e=>{
+            if(allResults.length===0)return;
+            if(e.key==='ArrowDown'){e.preventDefault();if(selectedIndex<Math.min(displayedCount,allResults.length)-1)selectResult(selectedIndex+1);}
+            else if(e.key==='ArrowUp'){e.preventDefault();if(selectedIndex>0)selectResult(selectedIndex-1);else if(selectedIndex===0){document.querySelectorAll('.result.selected').forEach(el=>el.classList.remove('selected'));selectedIndex=-1;document.getElementById('q').focus();}}
+            else if(e.key==='Enter'&&selectedIndex>=0){e.preventDefault();openResult(selectedIndex);}
+            else if(e.key==='Escape'){document.querySelectorAll('.result.selected').forEach(el=>el.classList.remove('selected'));selectedIndex=-1;document.getElementById('q').focus();}
+            else if(e.key==='/'&&document.activeElement!==document.getElementById('q')&&document.activeElement!==document.getElementById('url')){e.preventDefault();document.getElementById('q').focus();}
         });
 
         // Upload
-        async function upload() {
-            const url = document.getElementById('url').value.trim();
-            if (!url) return;
-
-            const status = document.getElementById('status');
-            status.className = 'active';
-            status.style.background = 'var(--bg-secondary)';
-            status.style.color = 'var(--text-secondary)';
-            status.style.border = '1px solid var(--border)';
-            status.textContent = '⏳ Adding to queue...';
-
-            try {
-                const res = await fetch('/api/index', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    status.className = 'active status-success';
-                    status.innerHTML = `✅ <strong>Added!</strong> Will be indexed soon.`;
-                    document.getElementById('url').value = '';
-                } else {
-                    status.className = 'active status-error';
-                    status.textContent = `❌ ${data.error || 'Failed'}`;
-                }
-            } catch (e) {
-                status.className = 'active status-error';
-                status.textContent = '❌ Connection failed.';
-            }
-            setTimeout(() => { status.className = ''; status.style.display = 'none'; }, 5000);
+        async function upload(){
+            const url=document.getElementById('url').value.trim();if(!url)return;
+            const status=document.getElementById('status');status.className='active';status.style.background='var(--bg-secondary)';status.style.color='var(--text-secondary)';status.style.border='1px solid var(--border)';status.textContent='⏳ Adding...';
+            try{const res=await fetch('/api/index',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});const data=await res.json();
+                if(data.success){status.className='active status-success';status.innerHTML='✅ <strong>Added!</strong> Will be indexed soon.';document.getElementById('url').value='';}
+                else{status.className='active status-error';status.textContent=`❌ ${data.error||'Failed'}`;}
+            }catch(e){status.className='active status-error';status.textContent='❌ Connection failed.';}
+            setTimeout(()=>{status.className='';status.style.display='none';},5000);
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
-        }
-
-        // Init
+        function escapeHtml(t){const d=document.createElement('div');d.textContent=t||'';return d.innerHTML;}
         loadUser();
-        
-        // If Google library loaded, initialize it
-        window.onload = function() {
-            if (window.google && google.accounts && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleResponse
-                });
-                google.accounts.id.renderButton(
-                    document.getElementById('g_id_signin'),
-                    { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill' }
-                );
-                document.getElementById('btnGoogleSignin').style.display = 'none';
-                document.getElementById('g_id_signin').style.display = 'block';
-            }
-        };
     </script>
 </body>
 </html>
