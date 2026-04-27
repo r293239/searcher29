@@ -5,6 +5,7 @@ import re
 import math
 import time
 import json
+import random
 from collections import defaultdict
 
 PARSE_APP_ID = "qXJqQ3HWKYsGVB1oQKnYZo7zdNLHgjZMiwonhozr"
@@ -23,19 +24,79 @@ class Crawler:
         self.session.headers.update({"User-Agent": "Mozilla/5.0 (compatible; SearchBot/1.0)"})
     
     def fetch(self, url):
+        """Download and parse a webpage with proper description extraction"""
         resp = self.session.get(url, timeout=10)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, 'html.parser')
-        title = soup.title.string.strip() if soup.title else url
-        text = soup.get_text(separator=' ', strip=True)[:10000]
+        
+        # Title
+        title = None
+        if soup.title and soup.title.string:
+            title = soup.title.string.strip()
+        if not title:
+            og_title = soup.find('meta', property='og:title')
+            if og_title:
+                title = og_title.get('content', '').strip()
+        if not title:
+            title = url
+        
+        # Description — try multiple sources in order of quality
+        description = ''
+        
+        # 1. Meta description (best)
+        meta_desc = soup.find('meta', attrs={'name': 'description'})
+        if meta_desc and meta_desc.get('content'):
+            description = meta_desc['content'].strip()
+        
+        # 2. Open Graph description
+        if not description:
+            og_desc = soup.find('meta', property='og:description')
+            if og_desc and og_desc.get('content'):
+                description = og_desc['content'].strip()
+        
+        # 3. First meaningful paragraph (smart extraction)
+        if not description:
+            for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'noscript', 'iframe']):
+                tag.decompose()
+            
+            paragraphs = soup.find_all('p')
+            for p in paragraphs:
+                text = p.get_text(separator=' ', strip=True)
+                if len(text) > 100 and not any(skip in text.lower()[:50] for skip in 
+                    ['cookie', 'accept', 'subscribe', 'sign up', 'log in', '©', 'all rights reserved', 'menu', 'navigation']):
+                    description = text
+                    break
+        
+        # 4. Fallback: first 300 chars of body text (cleaned)
+        if not description:
+            for tag in soup(['script', 'style', 'nav', 'header', 'footer']):
+                tag.decompose()
+            body_text = soup.get_text(separator=' ', strip=True)
+            description = body_text[:300]
+        
+        # Clean description
+        description = ' '.join(description.split())[:500]
+        
+        # Full text for indexing
+        full_text = soup.get_text(separator=' ', strip=True)[:10000]
+        
+        # Extract links
         links = []
         for a in soup.find_all('a', href=True):
             full = urljoin(url, a['href'])
             if full.startswith('http'):
                 links.append(full)
-        return {"url": url, "title": title, "text": text, "links": links[:20]}
+        
+        return {
+            "url": url, 
+            "title": title, 
+            "description": description,
+            "text": full_text, 
+            "links": links[:20]
+        }
     
     def crawl(self, start_urls, max_pages=50):
+        """BFS crawl from seed URLs"""
         visited = set()
         queue = list(start_urls)
         pages = []
@@ -105,8 +166,8 @@ class Indexer:
         return {
             "index": index,
             "urls": doc_urls,
-            "titles": [p['title'] for p in pages],
-            "snippets": [p['text'][:300] for p in pages],
+            "titles": [p.get('title', 'Untitled') for p in pages],
+            "snippets": [p.get('description', p['text'][:300]) for p in pages],
             "doc_count": N,
             "timestamp": time.time()
         }
