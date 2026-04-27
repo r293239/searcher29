@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Engine</title>
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <style>
         :root {
             --bg: #ffffff;
@@ -18,7 +22,6 @@
             --accent-hover: #4f46e5;
             --accent-light: #eef2ff;
             --highlight: #fef08a;
-            --highlight-dark: #eab308;
             --green: #059669;
             --green-bg: #ecfdf5;
             --red: #dc2626;
@@ -43,14 +46,12 @@
                 --accent-hover: #6366f1;
                 --accent-light: #1e1b4b;
                 --highlight: #854d0e;
-                --highlight-dark: #eab308;
                 --green: #34d399;
                 --green-bg: #064e3b;
                 --red: #f87171;
                 --red-bg: #7f1d1d;
                 --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
                 --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
-                --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
             }
         }
 
@@ -78,10 +79,128 @@
             z-index: 0;
         }
 
+        /* Top Bar */
+        .topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px 8px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+        .user-pill:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-lg);
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .btn-signin {
+            padding: 10px 24px;
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+        .btn-signin:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent);
+        }
+        .btn-signin img {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* User dropdown */
+        .user-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            min-width: 220px;
+            display: none;
+            z-index: 101;
+            overflow: hidden;
+        }
+        .user-dropdown.active { display: block; }
+
+        .dropdown-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dropdown-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        .dropdown-info .name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .dropdown-info .email {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
+            color: var(--text);
+            width: 100%;
+            text-align: left;
+        }
+        .dropdown-item:hover { background: var(--accent-light); }
+        .dropdown-item.danger { color: var(--red); }
+        .dropdown-item.danger:hover { background: var(--red-bg); }
+
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
+            padding-top: 60px;
             position: relative;
             z-index: 1;
         }
@@ -89,10 +208,10 @@
         /* Header */
         .header {
             text-align: center;
-            padding: 60px 0 10px;
+            padding: 40px 0 10px;
             transition: padding 0.3s ease;
         }
-        .header.compact { padding: 20px 0 10px; }
+        .header.compact { padding: 10px 0 10px; }
 
         .logo {
             font-size: 4rem;
@@ -128,7 +247,6 @@
         }
         .header.compact .subtitle { opacity: 0; height: 0; overflow: hidden; }
 
-        /* Index badge */
         .index-badge {
             display: inline-flex;
             align-items: center;
@@ -187,7 +305,6 @@
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
-        /* Suggestions dropdown */
         .suggestions {
             position: absolute;
             top: 100%;
@@ -212,15 +329,19 @@
             gap: 10px;
             color: var(--text-secondary);
             font-size: 0.95rem;
+            justify-content: space-between;
         }
         .suggestion-item:hover,
         .suggestion-item.active {
             background: var(--accent-light);
             color: var(--accent);
         }
-        .suggestion-item .icon { font-size: 0.9rem; }
+        .suggestion-item .history-badge {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
 
-        /* Buttons */
         .btn-search {
             padding: 18px 28px;
             font-size: 1.1rem;
@@ -232,13 +353,11 @@
             font-weight: 600;
             transition: all 0.3s ease;
             white-space: nowrap;
-            letter-spacing: 0.01em;
         }
         .btn-search:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
         }
-        .btn-search:active { transform: translateY(0); }
 
         .btn-lucky {
             padding: 18px 24px;
@@ -257,7 +376,6 @@
             color: var(--accent);
         }
 
-        /* Stats bar */
         .stats-bar {
             display: flex;
             align-items: center;
@@ -315,6 +433,13 @@
             border-color: var(--accent);
         }
 
+        .result-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
         .result-title {
             font-size: 1.25rem;
             font-weight: 600;
@@ -323,8 +448,30 @@
             display: block;
             margin-bottom: 6px;
             line-height: 1.3;
+            flex: 1;
         }
         .result-title:hover { text-decoration: underline; }
+
+        .result-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-save, .btn-like {
+            padding: 6px 8px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+        .result:hover .btn-save,
+        .result:hover .btn-like { opacity: 1; }
+        .btn-save:hover, .btn-like:hover { border-color: var(--accent); background: var(--accent-light); }
+        .btn-save.saved { background: var(--accent); color: white; border-color: var(--accent); opacity: 1; }
 
         .result-url {
             color: var(--green);
@@ -333,11 +480,7 @@
             word-break: break-all;
         }
 
-        .result-snippet {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
+        .result-snippet { color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem; }
 
         .result-snippet mark {
             background: var(--highlight);
@@ -356,16 +499,9 @@
             border-top: 1px solid var(--border);
         }
 
-        .result-score {
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-        }
+        .result-score { color: var(--text-secondary); font-size: 0.75rem; }
 
-        /* Load more button */
-        .load-more {
-            text-align: center;
-            margin-top: 20px;
-        }
+        .load-more { text-align: center; margin-top: 20px; }
         .btn-load-more {
             padding: 12px 32px;
             background: var(--bg-card);
@@ -377,16 +513,8 @@
             transition: all 0.3s ease;
             font-size: 0.95rem;
         }
-        .btn-load-more:hover {
-            background: var(--accent-light);
-            border-color: var(--accent);
-        }
-        .btn-load-more:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-load-more:hover { background: var(--accent-light); border-color: var(--accent); }
 
-        /* Keyboard hint */
         .keyboard-hint {
             text-align: center;
             color: var(--text-secondary);
@@ -403,20 +531,10 @@
             font-family: inherit;
         }
 
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-        }
+        .empty-state { text-align: center; padding: 80px 20px; }
         .empty-state .icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.6; }
         .empty-state h2 { color: var(--text); font-size: 1.5rem; margin-bottom: 8px; }
-        .empty-state p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            max-width: 400px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
+        .empty-state p { color: var(--text-secondary); font-size: 1rem; max-width: 400px; margin: 0 auto; line-height: 1.6; }
 
         /* Upload Section */
         .upload-section {
@@ -428,62 +546,26 @@
             box-shadow: var(--shadow);
         }
         .upload-section:hover { border-color: var(--accent); }
-        .upload-section h3 {
-            font-size: 1.1rem;
-            color: var(--text);
-            margin-bottom: 6px;
-        }
-        .upload-section .hint {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-bottom: 20px;
-        }
-        .upload-box {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .upload-section h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
+        .upload-section .hint { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px; }
+        .upload-box { display: flex; gap: 10px; flex-wrap: wrap; }
         .upload-box input {
-            flex: 1;
-            min-width: 200px;
-            padding: 14px 20px;
-            font-size: 1rem;
+            flex: 1; min-width: 200px;
+            padding: 14px 20px; font-size: 1rem;
             background: var(--input-bg);
             border: 2px solid var(--border);
-            color: var(--text);
-            border-radius: 12px;
-            outline: none;
+            color: var(--text); border-radius: 12px; outline: none;
         }
         .upload-box input:focus { border-color: var(--accent); }
         .upload-box button {
-            padding: 14px 28px;
-            font-size: 1rem;
-            background: var(--bg-secondary);
-            color: var(--text);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
+            padding: 14px 28px; font-size: 1rem;
+            background: var(--bg-secondary); color: var(--text);
+            border: 2px solid var(--border); border-radius: 12px;
+            cursor: pointer; font-weight: 500; transition: all 0.3s ease; white-space: nowrap;
         }
-        .upload-box button:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-        #status {
-            margin-top: 14px;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: none;
-        }
-        #status.active {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
+        .upload-box button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        #status { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: 500; display: none; }
+        #status.active { display: block; animation: slideIn 0.3s ease; }
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -491,20 +573,12 @@
         .status-success { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
         .status-error { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 40px 0;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
+        .footer { text-align: center; padding: 40px 0; color: var(--text-secondary); font-size: 0.85rem; }
         .footer a { color: var(--accent); text-decoration: none; }
         .footer a:hover { text-decoration: underline; }
 
-        /* Spinner */
         .spinner {
-            width: 20px;
-            height: 20px;
+            width: 20px; height: 20px;
             border: 2px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
@@ -513,28 +587,61 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Mobile */
         @media (max-width: 640px) {
-            .container { padding: 12px; }
-            .header { padding: 40px 0 10px; }
+            .container { padding: 12px; padding-top: 60px; }
+            .topbar { padding: 8px 12px; }
+            .header { padding: 30px 0 10px; }
             .logo { font-size: 3rem; }
             h1 { font-size: 2.2rem; }
             .header.compact h1 { font-size: 1.5rem; }
-            .header.compact .logo { font-size: 2rem; }
-            .search-box {
-                flex-direction: column;
-                gap: 8px;
-            }
-            .search-box input,
-            .btn-search,
-            .btn-lucky { width: 100%; text-align: center; }
+            .search-box { flex-direction: column; gap: 8px; }
+            .search-box input, .btn-search, .btn-lucky { width: 100%; text-align: center; }
             .result { padding: 18px; }
             .upload-box { flex-direction: column; }
-            .upload-box button { width: 100%; text-align: center; }
+            .upload-box button { width: 100%; }
         }
     </style>
 </head>
 <body>
+    <!-- Top Bar -->
+    <div class="topbar" id="topbar">
+        <!-- Google Sign-In button (shown when NOT logged in) -->
+        <div id="g_id_signin" style="display:none;"></div>
+        <button class="btn-signin" id="btnGoogleSignin" onclick="triggerGoogleLogin()">
+            <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285F4' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z'/><path fill='%2334A853' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/><path fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/><path fill='%23EA4335' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/></svg>" alt="Google">
+            Sign in with Google
+        </button>
+
+        <!-- User pill (shown when logged in) -->
+        <div class="user-pill" id="userPill" style="display:none;" onclick="toggleDropdown()">
+            <img class="user-avatar" id="userAvatar" src="" alt="">
+            <span class="user-name" id="userDisplayName"></span>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="user-dropdown" id="userDropdown">
+            <div class="dropdown-header">
+                <img class="dropdown-avatar" id="dropdownAvatar" src="" alt="">
+                <div class="dropdown-info">
+                    <div class="name" id="dropdownName"></div>
+                    <div class="email" id="dropdownEmail"></div>
+                </div>
+            </div>
+            <button class="dropdown-item" onclick="window.location.href='/admin.html'">
+                ⚙️ Search Console
+            </button>
+            <button class="dropdown-item" onclick="showSavedPages()">
+                📑 Saved Pages
+            </button>
+            <button class="dropdown-item" onclick="showHistory()">
+                🕐 Search History
+            </button>
+            <button class="dropdown-item danger" onclick="signOut()">
+                🚪 Sign Out
+            </button>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <div class="header" id="header">
@@ -551,11 +658,8 @@
             <div class="search-box">
                 <div class="search-input-wrapper">
                     <input 
-                        type="text" 
-                        id="q" 
-                        placeholder="Search the web..." 
-                        autofocus 
-                        autocomplete="off"
+                        type="text" id="q" placeholder="Search the web..." 
+                        autofocus autocomplete="off"
                     >
                     <div class="suggestions" id="suggestions"></div>
                 </div>
@@ -568,15 +672,13 @@
             <div class="stats-bar">
                 <span id="stats"></span>
                 <span class="keyboard-hint" id="keyboardHint" style="display:none">
-                    <kbd>↑</kbd><kbd>↓</kbd> Navigate &middot; <kbd>Enter</kbd> Open &middot; <kbd>/</kbd> Focus search
+                    <kbd>↑</kbd><kbd>↓</kbd> Navigate &middot; <kbd>Enter</kbd> Open &middot; <kbd>/</kbd> Focus
                 </span>
             </div>
         </div>
 
         <!-- Results -->
         <div class="results-container" id="results"></div>
-
-        <!-- Load more -->
         <div class="load-more" id="loadMore" style="display:none">
             <button class="btn-load-more" onclick="loadMore()">📄 Load More Results</button>
         </div>
@@ -584,7 +686,7 @@
         <!-- Upload -->
         <div class="upload-section">
             <h3>📤 Submit a URL</h3>
-            <p class="hint">Found something interesting? Add it to the crawl queue.</p>
+            <p class="hint">Found something? Add it to the crawl queue.</p>
             <div class="upload-box">
                 <input type="url" id="url" placeholder="https://example.com/article">
                 <button onclick="upload()">Add to Queue</button>
@@ -592,21 +694,252 @@
             <div id="status"></div>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
-            <a href="https://github.com" target="_blank">GitHub</a> &middot; Auto-discovers &middot; Updates every 15 min
+            <a href="/admin.html">Console</a> &middot; Auto-discovers &middot; Updates every 15 min
         </div>
     </div>
 
+    <!-- Google Identity Services -->
     <script>
-        // State
+        // ===== GOOGLE AUTH CONFIG =====
+        // Replace with your Google Cloud Console OAuth client ID
+        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+        
+        let currentUser = null;
+        let searchHistory = [];
+        let savedPages = [];
+
+        // Load saved user from localStorage
+        function loadUser() {
+            const stored = localStorage.getItem('search_user');
+            if (stored) {
+                currentUser = JSON.parse(stored);
+                updateUI();
+                loadUserData();
+            }
+        }
+
+        function updateUI() {
+            if (currentUser) {
+                document.getElementById('btnGoogleSignin').style.display = 'none';
+                document.getElementById('g_id_signin').style.display = 'none';
+                document.getElementById('userPill').style.display = 'flex';
+                document.getElementById('userAvatar').src = currentUser.picture || '';
+                document.getElementById('userDisplayName').textContent = currentUser.name?.split(' ')[0] || 'User';
+                document.getElementById('dropdownAvatar').src = currentUser.picture || '';
+                document.getElementById('dropdownName').textContent = currentUser.name || 'User';
+                document.getElementById('dropdownEmail').textContent = currentUser.email || '';
+            } else {
+                document.getElementById('btnGoogleSignin').style.display = 'flex';
+                document.getElementById('userPill').style.display = 'none';
+            }
+        }
+
+        // Google Sign-In callback
+        function handleGoogleResponse(response) {
+            if (response.credential) {
+                const payload = parseJwt(response.credential);
+                currentUser = {
+                    name: payload.name,
+                    email: payload.email,
+                    picture: payload.picture,
+                    sub: payload.sub
+                };
+                localStorage.setItem('search_user', JSON.stringify(currentUser));
+                updateUI();
+                saveUserToBackend();
+                loadUserData();
+            }
+        }
+
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/
+
+g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => 
+                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+            ).join('')));
+        }
+
+        function triggerGoogleLogin() {
+            // Initialize Google Sign-In
+            if (window.google && google.accounts) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleResponse,
+                    auto_select: false
+                });
+                google.accounts.id.prompt();
+            } else {
+                // Fallback for demo: create anonymous user
+                currentUser = {
+                    name: 'Demo User',
+                    email: 'demo@search.local',
+                    picture: '',
+                    sub: 'demo-' + Date.now()
+                };
+                localStorage.setItem('search_user', JSON.stringify(currentUser));
+                updateUI();
+                saveUserToBackend();
+                loadUserData();
+            }
+        }
+
+        function signOut() {
+            if (window.google && google.accounts) {
+                google.accounts.id.disableAutoSelect();
+            }
+            localStorage.removeItem('search_user');
+            currentUser = null;
+            searchHistory = [];
+            savedPages = [];
+            updateUI();
+            document.getElementById('userDropdown').classList.remove('active');
+        }
+
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+
+        // Close dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-pill') && !e.target.closest('.user-dropdown')) {
+                document.getElementById('userDropdown').classList.remove('active');
+            }
+        });
+
+        // ===== USER DATA (Saved to Back4App) =====
+        async function saveUserToBackend() {
+            if (!currentUser) return;
+            try {
+                await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveUser',
+                        user: currentUser
+                    })
+                });
+            } catch(e) {}
+        }
+
+        async function loadUserData() {
+            if (!currentUser) return;
+            try {
+                const res = await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'getUserData',
+                        userId: currentUser.sub || currentUser.email
+                    })
+                });
+                const data = await res.json();
+                if (data.history) searchHistory = data.history;
+                if (data.saved) savedPages = data.saved;
+            } catch(e) {}
+        }
+
+        async function saveSearchQuery(query) {
+            if (!currentUser || !query) return;
+            searchHistory.unshift({ query, time: Date.now() });
+            if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
+            
+            try {
+                await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveHistory',
+                        userId: currentUser.sub || currentUser.email,
+                        history: searchHistory
+                    })
+                });
+            } catch(e) {}
+        }
+
+        async function toggleSavePage(url, title, snippet) {
+            if (!currentUser) {
+                alert('Sign in to save pages!');
+                return;
+            }
+            
+            const exists = savedPages.findIndex(p => p.url === url);
+            if (exists >= 0) {
+                savedPages.splice(exists, 1);
+            } else {
+                savedPages.unshift({ url, title, snippet, savedAt: Date.now() });
+                if (savedPages.length > 100) savedPages = savedPages.slice(0, 100);
+            }
+            
+            try {
+                await fetch('/api/index', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'savePages',
+                        userId: currentUser.sub || currentUser.email,
+                        saved: savedPages
+                    })
+                });
+            } catch(e) {}
+            
+            renderResults();
+        }
+
+        function showSavedPages() {
+            document.getElementById('userDropdown').classList.remove('active');
+            if (savedPages.length === 0) {
+                allResults = [];
+                renderResults();
+                document.getElementById('stats').innerHTML = '📑 No saved pages yet. Save pages by clicking 💾 on results!';
+                return;
+            }
+            allResults = savedPages.map(p => ({
+                url: p.url,
+                title: p.title,
+                snippet: p.snippet,
+                score: 1,
+                saved: true
+            }));
+            currentQuery = '';
+            displayedCount = 10;
+            renderResults();
+            document.getElementById('stats').innerHTML = `📑 <strong>${savedPages.length}</strong> saved pages`;
+            document.getElementById('header').classList.add('compact');
+        }
+
+        function showHistory() {
+            document.getElementById('userDropdown').classList.remove('active');
+            if (searchHistory.length === 0) {
+                document.getElementById('results').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🕐</div>
+                        <h2>No search history yet</h2>
+                        <p>Start searching to build your history!</p>
+                    </div>
+                `;
+                document.getElementById('stats').innerHTML = '';
+                return;
+            }
+            document.getElementById('results').innerHTML = searchHistory.map(h => `
+                <div class="result" onclick="document.getElementById('q').value='${escapeHtml(h.query)}';search()">
+                    <span style="color:var(--accent);font-weight:600">🕐 ${escapeHtml(h.query)}</span>
+                    <span style="color:var(--text-secondary);font-size:0.8rem;float:right">${new Date(h.time).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+            document.getElementById('stats').innerHTML = `🕐 <strong>${searchHistory.length}</strong> recent searches`;
+            document.getElementById('header').classList.add('compact');
+        }
+
+        // ===== SEARCH FUNCTIONS =====
         let currentQuery = '';
         let allResults = [];
         let displayedCount = 10;
         let selectedIndex = -1;
         let totalIndexed = 0;
 
-        // Fetch index size on load
         async function fetchIndexSize() {
             try {
                 const res = await fetch('/api/index?q=');
@@ -628,25 +961,27 @@
             selectedIndex = -1;
             document.getElementById('suggestions').classList.remove('active');
 
-            // UI loading state
             const searchBtn = document.getElementById('searchText');
             const spinner = document.getElementById('searchSpinner');
             searchBtn.style.display = 'none';
             spinner.style.display = 'inline-block';
-
-            // Compact header
             document.getElementById('header').classList.add('compact');
 
+            // Save to history
+            saveSearchQuery(q);
+
             try {
-                const res = await fetch(`/api/index?q=${encodeURIComponent(q)}&limit=50`);
+                const res = await fetch(`/api/index?q=${encodeURIComponent(q)}&limit=50${currentUser ? '&userId=' + encodeURIComponent(currentUser.sub || currentUser.email) : ''}`);
                 const data = await res.json();
-                allResults = data.results || [];
+                allResults = (data.results || []).map(r => ({
+                    ...r,
+                    saved: savedPages.some(p => p.url === r.url)
+                }));
                 displayedCount = 10;
                 totalIndexed = data.totalIndexed || totalIndexed;
 
                 document.getElementById('indexCount').textContent = totalIndexed.toLocaleString();
                 document.getElementById('indexBadge').style.display = 'inline-flex';
-
                 renderResults();
             } catch (e) {
                 document.getElementById('results').innerHTML = `
@@ -656,7 +991,6 @@
                         <p>Couldn't connect to the search server.</p>
                     </div>
                 `;
-                document.getElementById('stats').innerHTML = '';
             } finally {
                 searchBtn.style.display = 'inline';
                 spinner.style.display = 'none';
@@ -670,20 +1004,20 @@
             const keyboardHint = document.getElementById('keyboardHint');
 
             if (allResults.length === 0) {
-                stats.innerHTML = '';
+                stats.innerHTML = currentQuery ? '' : '';
                 keyboardHint.style.display = 'none';
                 loadMoreDiv.style.display = 'none';
                 resultsDiv.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">📭</div>
-                        <h2>No results for "${escapeHtml(currentQuery)}"</h2>
-                        <p>Try different keywords or add new URLs below.</p>
+                        <h2>${currentQuery ? `No results for "${escapeHtml(currentQuery)}"` : 'Search something!'}</h2>
+                        <p>${currentQuery ? 'Try different keywords or add new URLs below.' : 'Discover the web with our auto-crawling search engine.'}</p>
                     </div>
                 `;
                 return;
             }
 
-            stats.innerHTML = `About <strong>${allResults.length}</strong> results (${(Math.random() * 0.5 + 0.1).toFixed(2)} seconds)`;
+            stats.innerHTML = `About <strong>${allResults.length}</strong> results`;
             keyboardHint.style.display = 'block';
 
             const toShow = allResults.slice(0, displayedCount);
@@ -693,9 +1027,18 @@
                 <div class="result" tabindex="0" data-index="${i}" 
                      onclick="openResult(${i})"
                      onmouseenter="selectResult(${i})">
-                    <a href="${escapeHtml(r.url)}" class="result-title" target="_blank" rel="noopener" onclick="event.stopPropagation()">
-                        ${escapeHtml(r.title || 'Untitled')}
-                    </a>
+                    <div class="result-header">
+                        <a href="${escapeHtml(r.url)}" class="result-title" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+                            ${escapeHtml(r.title || 'Untitled')}
+                        </a>
+                        <div class="result-actions">
+                            <button class="btn-save ${r.saved ? 'saved' : ''}" 
+                                    onclick="event.stopPropagation();toggleSavePage('${escapeHtml(r.url)}','${escapeHtml(r.title || '')}','${escapeHtml(r.snippet || '')}')" 
+                                    title="${r.saved ? 'Saved!' : 'Save page'}">
+                                ${r.saved ? '💾' : '📑'}
+                            </button>
+                        </div>
+                    </div>
                     <div class="result-url">🔗 ${escapeHtml(r.url)}</div>
                     <div class="result-snippet">${highlightTerms(escapeHtml(r.snippet || ''), words)}</div>
                     <div class="result-footer">
@@ -705,7 +1048,6 @@
                 </div>
             `).join('');
 
-            // Show/hide load more
             if (displayedCount < allResults.length) {
                 loadMoreDiv.style.display = 'block';
             } else {
@@ -716,6 +1058,7 @@
         function highlightTerms(text, words) {
             let highlighted = text;
             words.forEach(word => {
+                if (word.length < 2) return;
                 const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
                 highlighted = highlighted.replace(regex, '<mark>$1</mark>');
             });
@@ -726,20 +1069,15 @@
             displayedCount += 10;
             if (displayedCount > allResults.length) displayedCount = allResults.length;
             renderResults();
-            // Scroll to new results
             const lastResult = document.querySelector(`.result[data-index="${displayedCount - 1}"]`);
             if (lastResult) lastResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function selectResult(index) {
-            // Remove old selection
             document.querySelectorAll('.result.selected').forEach(el => el.classList.remove('selected'));
             selectedIndex = index;
             const el = document.querySelector(`.result[data-index="${index}"]`);
-            if (el) {
-                el.classList.add('selected');
-                el.focus();
-            }
+            if (el) { el.classList.add('selected'); el.focus(); }
         }
 
         function openResult(index) {
@@ -751,15 +1089,11 @@
         async function feelingLucky() {
             const q = document.getElementById('q').value.trim();
             if (!q) {
-                // Pick random word to search
-                const randomTerms = ['technology', 'science', 'internet', 'programming', 'web', 'computer', 'data', 'code', 'design', 'future'];
+                const randomTerms = ['technology', 'science', 'internet', 'programming', 'web', 'computer', 'data', 'code'];
                 document.getElementById('q').value = randomTerms[Math.floor(Math.random() * randomTerms.length)];
             }
-            
             await search();
-            
             if (allResults.length > 0) {
-                // Pick a random top result
                 const luckyIndex = Math.floor(Math.random() * Math.min(5, allResults.length));
                 window.open(allResults[luckyIndex].url, '_blank');
             }
@@ -778,7 +1112,7 @@
             document.getElementById('q').focus();
         }
 
-        // Search suggestions
+        // Suggestions
         let suggestTimeout;
         document.getElementById('q').addEventListener('input', function() {
             clearTimeout(suggestTimeout);
@@ -791,17 +1125,26 @@
             }
 
             suggestTimeout = setTimeout(() => {
-                const suggestions = [
+                const suggestions = [];
+                // Add history suggestions first
+                if (currentUser && searchHistory.length > 0) {
+                    const matches = searchHistory.filter(h => h.query.toLowerCase().includes(val.toLowerCase())).slice(0, 3);
+                    matches.forEach(m => {
+                        suggestions.push({ icon: '🕐', text: m.query, badge: 'history' });
+                    });
+                }
+                // Add generic suggestions
+                suggestions.push(
                     { icon: '🔍', text: val },
                     { icon: '📖', text: val + ' wikipedia' },
                     { icon: '💻', text: val + ' tutorial' },
-                    { icon: '📰', text: val + ' news' },
-                    { icon: '🎓', text: val + ' definition' },
-                ];
+                    { icon: '📰', text: val + ' news' }
+                );
 
-                suggestionsDiv.innerHTML = suggestions.map((s, i) => `
+                suggestionsDiv.innerHTML = suggestions.map(s => `
                     <div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(s.text)}')">
-                        <span class="icon">${s.icon}</span> ${escapeHtml(s.text)}
+                        <span>${s.icon} ${escapeHtml(s.text)}</span>
+                        ${s.badge ? `<span class="history-badge">${s.badge}</span>` : ''}
                     </div>
                 `).join('');
                 suggestionsDiv.classList.add('active');
@@ -814,7 +1157,6 @@
             search();
         }
 
-        // Close suggestions on click outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-input-wrapper')) {
                 document.getElementById('suggestions').classList.remove('active');
@@ -824,12 +1166,11 @@
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (allResults.length === 0) return;
-
             const results = document.querySelectorAll('.result');
             
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                if (selectedIndex < allResults.length - 1) {
+                if (selectedIndex < Math.min(displayedCount, allResults.length) - 1) {
                     selectResult(selectedIndex + 1);
                 }
             } else if (e.key === 'ArrowUp') {
@@ -876,17 +1217,16 @@
 
                 if (data.success) {
                     status.className = 'active status-success';
-                    status.innerHTML = `✅ <strong>Added!</strong> ${escapeHtml(url)} — Will be indexed soon.`;
+                    status.innerHTML = `✅ <strong>Added!</strong> Will be indexed soon.`;
                     document.getElementById('url').value = '';
                 } else {
                     status.className = 'active status-error';
-                    status.textContent = `❌ ${data.error || 'Failed to add URL'}`;
+                    status.textContent = `❌ ${data.error || 'Failed'}`;
                 }
             } catch (e) {
                 status.className = 'active status-error';
                 status.textContent = '❌ Connection failed.';
             }
-
             setTimeout(() => { status.className = ''; status.style.display = 'none'; }, 5000);
         }
 
@@ -895,6 +1235,25 @@
             div.textContent = text || '';
             return div.innerHTML;
         }
+
+        // Init
+        loadUser();
+        
+        // If Google library loaded, initialize it
+        window.onload = function() {
+            if (window.google && google.accounts && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('g_id_signin'),
+                    { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill' }
+                );
+                document.getElementById('btnGoogleSignin').style.display = 'none';
+                document.getElementById('g_id_signin').style.display = 'block';
+            }
+        };
     </script>
 </body>
 </html>
