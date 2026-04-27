@@ -1,11 +1,7 @@
 {
   "functions": {
-    "api/index.py": {
-      "runtime": "vercel-python@3.0.0"
+    "api/index.js": {
+      "maxDuration": 10
     }
-  },
-  "rewrites": [
-    { "source": "/search", "destination": "/api/index" },
-    { "source": "/upload", "destination": "/api/index" }
-  ]
+  }
 }
