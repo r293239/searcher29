@@ -76,7 +76,7 @@ class SearchEngine {
             return {
                 url: index.urls[id] || '',
                 title: index.titles[id] || 'Untitled',
-                snippet: (index.snippets[id] || '').substring(0, 200),
+                snippet: (index.snippets[id] || '').substring(0, 250),
                 score: Math.round(score * 10000) / 10000
             };
         });
@@ -153,7 +153,7 @@ module.exports = async (req, res) => {
                     res.status(200).json({
                         success: true,
                         message: `URL queued: ${url}`,
-                        crawlNext: 'GitHub Actions will crawl it automatically!'
+                        crawlNext: 'The auto-discover crawler will index it soon!'
                     });
                 } else {
                     res.status(500).json({ error: 'Failed to queue URL' });
