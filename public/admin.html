@@ -21,6 +21,8 @@
             --red-bg: #fef2f2;
             --orange: #ea580c;
             --orange-bg: #fff7ed;
+            --yellow: #ca8a04;
+            --yellow-bg: #fefce8;
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
             --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
@@ -42,6 +44,8 @@
                 --red-bg: #7f1d1d;
                 --orange: #fb923c;
                 --orange-bg: #7c2d12;
+                --yellow: #facc15;
+                --yellow-bg: #713f12;
             }
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,7 +57,6 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        /* Top Bar */
         .topbar {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
@@ -66,142 +69,71 @@
         }
         .topbar .logo { font-size: 1.5rem; font-weight: 700; }
         .topbar .logo span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .user-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
         .badge-admin { background: #fef3c7; color: #92400e; }
         .badge-editor { background: #dbeafe; color: #1e40af; }
         .badge-viewer { background: #e0e7ff; color: #3730a3; }
-        .btn-logout {
-            padding: 6px 16px;
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
+        .btn-logout { padding: 6px 16px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
         .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
         
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .stat-card .stat-icon { font-size: 2rem; margin-bottom: 8px; }
+        .stat-card .stat-label { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 4px; }
+        .stat-card .stat-value { font-size: 2.5rem; font-weight: 700; }
+        .stat-card .stat-sub { color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; }
+        .stat-card.pulse { animation: statPulse 0.5s ease; }
+        @keyframes statPulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+
+        /* Crawl button */
+        .crawl-section {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 2px solid var(--accent);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: var(--shadow);
-        }
-        .stat-card .stat-label { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 4px; }
-        .stat-card .stat-value { font-size: 2rem; font-weight: 700; }
-        .stat-card .stat-icon { font-size: 1.5rem; }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 4px;
             margin-bottom: 24px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 16px;
         }
-        .tab {
-            padding: 10px 20px;
+        .crawl-section .info h3 { margin-bottom: 4px; }
+        .crawl-section .info p { color: var(--text-secondary); font-size: 0.85rem; }
+        .btn-crawl {
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: var(--gradient);
+            color: white;
             border: none;
-            background: transparent;
-            color: var(--text-secondary);
+            border-radius: 10px;
             cursor: pointer;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            transition: all 0.3s;
             white-space: nowrap;
         }
+        .btn-crawl:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(99,102,241,0.4); }
+        .btn-crawl:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 4px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 8px; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
         .tab.active { background: var(--accent); color: white; }
         .tab:hover:not(.active) { background: var(--accent-light); }
 
-        /* Tab Content */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .card h3 { margin-bottom: 16px; font-size: 1.1rem; }
-
-        /* Forms */
-        textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 14px;
-            font-size: 0.95rem;
-            background: var(--bg);
-            border: 2px solid var(--border);
-            color: var(--text);
-            border-radius: 10px;
-            outline: none;
-            font-family: monospace;
-            resize: vertical;
-            margin-bottom: 12px;
-        }
+        textarea { width: 100%; min-height: 150px; padding: 14px; font-size: 0.95rem; background: var(--bg); border: 2px solid var(--border); color: var(--text); border-radius: 10px; outline: none; font-family: monospace; resize: vertical; margin-bottom: 12px; }
         textarea:focus { border-color: var(--accent); }
-        input[type="text"], input[type="url"], input[type="password"] {
-            width: 100%;
-            padding: 12px 14px;
-            background: var(--bg);
-            border: 2px solid var(--border);
-            color: var(--text);
-            border-radius: 8px;
-            outline: none;
-            font-size: 0.95rem;
-        }
+        input[type="text"], input[type="url"], input[type="password"] { width: 100%; padding: 12px 14px; background: var(--bg); border: 2px solid var(--border); color: var(--text); border-radius: 8px; outline: none; font-size: 0.95rem; }
         input:focus { border-color: var(--accent); }
-        select {
-            padding: 10px 14px;
-            background: var(--bg);
-            border: 2px solid var(--border);
-            color: var(--text);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
+        select { padding: 10px 14px; background: var(--bg); border: 2px solid var(--border); color: var(--text); border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-hover); }
         .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
@@ -211,61 +143,38 @@
         .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
         .button-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        th, td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
         th { color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
         tr:hover td { background: var(--accent-light); }
         .url-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .role-select { padding: 4px 8px; font-size: 0.8rem; }
 
-        /* Status badges */
-        .status { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-crawled { background: #d1fae5; color: #065f46; }
-        .status-failed { background: #fee2e2; color: #991b1b; }
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .status-pending { background: var(--yellow-bg); color: var(--yellow); }
+        .status-crawled { background: var(--green-bg); color: var(--green); }
+        .status-failed { background: var(--red-bg); color: var(--red); }
 
-        /* Messages */
-        .msg {
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            font-size: 0.9rem;
-            display: none;
-        }
+        .msg { padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; display: none; }
         .msg-success { background: var(--green-bg); color: var(--green); display: block; }
         .msg-error { background: var(--red-bg); color: var(--red); display: block; }
+        .msg-info { background: var(--accent-light); color: var(--accent); display: block; }
 
-        /* Loading */
-        .spinner {
-            display: inline-block;
-            width: 18px; height: 18px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .text-center { text-align: center; color: var(--text-secondary); padding: 20px; }
 
         @media (max-width: 640px) {
             .topbar { padding: 10px 14px; }
             .container { padding: 16px 12px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stat-card .stat-value { font-size: 1.8rem; }
             table { font-size: 0.8rem; }
             th, td { padding: 8px 10px; }
         }
     </style>
 </head>
 <body>
-    <!-- Top Bar -->
     <div class="topbar">
         <div class="logo">🔍 <span>Search Console</span></div>
         <div class="user-info">
@@ -276,27 +185,42 @@
     </div>
 
     <div class="container">
+        <!-- Crawl Button -->
+        <div class="crawl-section">
+            <div class="info">
+                <h3>🕷️ Manual Crawl Trigger</h3>
+                <p>Trigger the crawler manually to index queued URLs immediately.</p>
+            </div>
+            <button class="btn-crawl" id="btnCrawl" onclick="triggerCrawl()">
+                🚀 Crawl Now
+            </button>
+        </div>
+
         <!-- Stats -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" id="cardIndexed">
                 <div class="stat-icon">📚</div>
                 <div class="stat-label">Pages Indexed</div>
                 <div class="stat-value" id="statIndexed">-</div>
+                <div class="stat-sub">Total unique pages</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">⏳</div>
                 <div class="stat-label">In Queue</div>
                 <div class="stat-value" id="statQueue">-</div>
+                <div class="stat-sub">Pending crawl</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔤</div>
+                <div class="stat-label">Unique Terms</div>
+                <div class="stat-value" id="statTerms">-</div>
+                <div class="stat-sub">Searchable words</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
                 <div class="stat-label">Users</div>
                 <div class="stat-value" id="statUsers">-</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔍</div>
-                <div class="stat-label">Unique Terms</div>
-                <div class="stat-value" id="statTerms">-</div>
+                <div class="stat-sub">Registered accounts</div>
             </div>
         </div>
 
@@ -313,17 +237,16 @@
             <div class="card">
                 <h3>📤 Mass URL Submission</h3>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px;">
-                    Paste up to 100 URLs, one per line. Duplicates will be skipped.
+                    Paste up to 100 URLs, one per line. Duplicates are automatically skipped.
                 </p>
-                <textarea id="bulkUrls" placeholder="https://example.com/article1&#10;https://example.com/article2&#10;https://example.com/article3&#10;..."></textarea>
+                <textarea id="bulkUrls" placeholder="https://example.com/article1&#10;https://example.com/article2&#10;https://example.com/article3&##10;..."></textarea>
                 <div class="button-row">
                     <button class="btn btn-primary" onclick="bulkUpload()">🚀 Submit All</button>
-                    <button class="btn" onclick="document.getElementById('bulkUrls').value=''" style="background:var(--bg);border:1px solid var(--border);">Clear</button>
+                    <button class="btn" onclick="document.getElementById('bulkUrls').value='';document.getElementById('urlCount').textContent='0 URLs';" style="background:var(--bg);border:1px solid var(--border);">Clear</button>
                     <span style="color: var(--text-secondary); font-size: 0.85rem;" id="urlCount">0 URLs</span>
                 </div>
                 <div class="msg" id="uploadMsg"></div>
             </div>
-            
             <div class="card">
                 <h3>🔗 Quick Add Single URL</h3>
                 <div class="button-row">
@@ -339,35 +262,27 @@
                 <h3>📋 Crawl Queue</h3>
                 <div class="button-row" style="margin-bottom:14px;">
                     <button class="btn btn-green btn-sm" onclick="loadQueue()">🔄 Refresh</button>
-                    <button class="btn btn-danger btn-sm" onclick="clearQueue()" id="btnClearQueue">🗑 Clear All Pending</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearQueue()">🗑 Clear All Pending</button>
                 </div>
                 <div style="overflow-x:auto;">
                     <table>
-                        <thead>
-                            <tr><th>URL</th><th>Status</th><th>Added</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody id="queueTable">
-                            <tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr>
-                        </tbody>
+                        <thead><tr><th>URL</th><th>Status</th><th>Added</th><th>Actions</th></tr></thead>
+                        <tbody id="queueTable"><tr><td colspan="4" class="text-center">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Users Tab (Admin only) -->
+        <!-- Users Tab -->
         <div class="tab-content" id="tab-users">
             <div class="card">
                 <h3>👥 User Management</h3>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px;">
-                    Manage who has access and their permission level.
+                    Manage who has access. First user to sign up is automatically Admin.
                 </p>
                 <table>
-                    <thead>
-                        <tr><th>Username</th><th>Role</th><th>Permissions</th><th>Joined</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="usersTable">
-                        <tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr>
-                    </tbody>
+                    <thead><tr><th>Username</th><th>Role</th><th>Permissions</th><th>Joined</th><th>Actions</th></tr></thead>
+                    <tbody id="usersTable"><tr><td colspan="5" class="text-center">Loading...</td></tr></tbody>
                 </table>
                 <div class="msg" id="usersMsg"></div>
             </div>
@@ -378,7 +293,7 @@
             <div class="card">
                 <h3>🔍 Index Browser</h3>
                 <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px;">
-                    Browse all indexed pages.
+                    Browse all indexed pages. Total: <strong id="indexTotal">0</strong> pages.
                 </p>
                 <div class="button-row" style="margin-bottom:14px;">
                     <button class="btn btn-green btn-sm" onclick="loadIndexPages()">🔄 Refresh</button>
@@ -386,12 +301,8 @@
                 </div>
                 <div style="overflow-x:auto; max-height: 500px; overflow-y:auto;">
                     <table>
-                        <thead>
-                            <tr><th>#</th><th>Title</th><th>URL</th><th>Snippet</th></tr>
-                        </thead>
-                        <tbody id="indexTable">
-                            <tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">Loading...</td></tr>
-                        </tbody>
+                        <thead><tr><th>#</th><th>Title</th><th>URL</th><th>Snippet</th></tr></thead>
+                        <tbody id="indexTable"><tr><td colspan="4" class="text-center">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -404,35 +315,24 @@
         let queueItems = [];
         let indexPages = [];
 
-        // Auth check
         function checkAuth() {
-            const stored = localStorage.getItem('search_console_user');
-            if (!stored) {
-                window.location.href = '/login.html';
-                return;
-            }
+            const stored = localStorage.getItem('search_user');
+            if (!stored) { window.location.href = '/login.html'; return; }
             currentUser = JSON.parse(stored);
             document.getElementById('userName').textContent = currentUser.username;
-            
             const badge = document.getElementById('userBadge');
             badge.textContent = currentUser.role.toUpperCase();
             badge.className = 'user-badge';
             if (currentUser.role === 'admin') badge.classList.add('badge-admin');
             else if (currentUser.role === 'editor') badge.classList.add('badge-editor');
             else badge.classList.add('badge-viewer');
-            
-            // Hide admin tabs for non-admins
             if (currentUser.role !== 'admin') {
-                document.querySelectorAll('.tab')[2].style.display = 'none'; // Users tab
+                document.querySelectorAll('.tab')[2].style.display = 'none';
             }
         }
 
-        function logout() {
-            localStorage.removeItem('search_console_user');
-            window.location.href = '/login.html';
-        }
+        function logout() { localStorage.removeItem('search_user'); window.location.href = '/login.html'; }
 
-        // API helper
         async function api(body) {
             const res = await fetch('/api/index', {
                 method: 'POST',
@@ -442,16 +342,42 @@
             return res.json();
         }
 
-        // Tab switching
         function switchTab(name) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector(`.tab:nth-child(${['upload','queue','users','index'].indexOf(name)+1})`).classList.add('active');
+            const tabs = ['upload','queue','users','index'];
+            document.querySelector(`.tab:nth-child(${tabs.indexOf(name)+1})`).classList.add('active');
             document.getElementById(`tab-${name}`).classList.add('active');
-            
             if (name === 'queue') loadQueue();
             if (name === 'users' && currentUser.role === 'admin') loadUsers();
             if (name === 'index') loadIndexPages();
+        }
+
+        // Crawl trigger
+        async function triggerCrawl() {
+            const btn = document.getElementById('btnCrawl');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Crawling...';
+            
+            try {
+                // Trigger via GitHub Actions API (manual dispatch)
+                // Since we can't directly trigger Actions from browser easily,
+                // we use a workaround: create a special queue item that the crawler checks
+                const data = await api({ action: 'triggerCrawl', username: currentUser.username });
+                
+                if (data.success) {
+                    showMsg('uploadMsg', '✅ Crawl triggered! The crawler will process the queue on its next run (within the hour). To run immediately, go to GitHub Actions → Run workflow.', 'info');
+                    // Refresh stats after a delay
+                    setTimeout(() => { loadStats(); loadQueue(); }, 5000);
+                } else {
+                    showMsg('uploadMsg', '❌ Failed to trigger crawl', 'error');
+                }
+            } catch(e) {
+                showMsg('uploadMsg', '❌ Connection failed. Trigger manually from GitHub Actions tab.', 'error');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '🚀 Crawl Now';
         }
 
         // URL counter
@@ -460,31 +386,17 @@
             document.getElementById('urlCount').textContent = `${lines.length} URLs`;
         });
 
-        // Mass upload
         async function bulkUpload() {
             const text = document.getElementById('bulkUrls').value;
             const urls = text.split('\n').map(l => l.trim()).filter(l => l && l.startsWith('http'));
-            
-            if (urls.length === 0) {
-                showMsg('uploadMsg', 'Please enter at least one valid URL', 'error');
-                return;
-            }
-            if (urls.length > 100) {
-                showMsg('uploadMsg', 'Maximum 100 URLs at once', 'error');
-                return;
-            }
+            if (urls.length === 0) { showMsg('uploadMsg', 'Please enter at least one valid URL', 'error'); return; }
+            if (urls.length > 100) { showMsg('uploadMsg', 'Maximum 100 URLs at once', 'error'); return; }
 
             document.getElementById('uploadMsg').innerHTML = '<span class="spinner"></span> Submitting...';
-            document.getElementById('uploadMsg').className = 'msg';
+            document.getElementById('uploadMsg').className = 'msg msg-info';
             document.getElementById('uploadMsg').style.display = 'block';
 
-            const data = await api({
-                action: 'bulkUpload',
-                urls: urls,
-                username: currentUser.username,
-                role: currentUser.role
-            });
-
+            const data = await api({ action: 'bulkUpload', urls, username: currentUser.username, role: currentUser.role });
             if (data.success) {
                 showMsg('uploadMsg', `✅ Submitted ${data.count} URLs! ${data.skipped} duplicates skipped.`, 'success');
                 document.getElementById('bulkUrls').value = '';
@@ -497,18 +409,8 @@
 
         async function singleUpload() {
             const url = document.getElementById('singleUrl').value.trim();
-            if (!url || !url.startsWith('http')) {
-                showMsg('uploadMsg', 'Please enter a valid URL', 'error');
-                return;
-            }
-
-            const data = await api({
-                action: 'bulkUpload',
-                urls: [url],
-                username: currentUser.username,
-                role: currentUser.role
-            });
-
+            if (!url || !url.startsWith('http')) { showMsg('uploadMsg', 'Please enter a valid URL', 'error'); return; }
+            const data = await api({ action: 'bulkUpload', urls: [url], username: currentUser.username, role: currentUser.role });
             if (data.success) {
                 showMsg('uploadMsg', `✅ Added: ${url}`, 'success');
                 document.getElementById('singleUrl').value = '';
@@ -518,132 +420,103 @@
             }
         }
 
-        // Queue
         async function loadQueue() {
             const data = await api({ action: 'getQueue' });
             queueItems = data.queue || [];
-            
             const tbody = document.getElementById('queueTable');
             if (queueItems.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">Queue is empty 🎉</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">✅ Queue is empty! All URLs have been crawled.</td></tr>';
             } else {
                 tbody.innerHTML = queueItems.map(item => `
                     <tr>
                         <td class="url-cell" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</td>
-                        <td><span class="status status-${item.status}">${item.status}</span></td>
+                        <td><span class="status-badge status-pending">pending</span></td>
                         <td>${item.createdAt ? new Date(item.createdAt).toLocaleString() : '-'}</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" onclick="deleteQueueItem('${item.objectId}')">Remove</button>
-                        </td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteQueueItem('${item.objectId}')">Remove</button></td>
                     </tr>
                 `).join('');
             }
         }
 
-        async function deleteQueueItem(id) {
-            await api({ action: 'deleteQueueItem', objectId: id });
-            loadQueue();
-            loadStats();
-        }
+        async function deleteQueueItem(id) { await api({ action: 'deleteQueueItem', objectId: id }); loadQueue(); loadStats(); }
+        async function clearQueue() { if (!confirm('Delete ALL pending URLs?')) return; await api({ action: 'clearQueue' }); loadQueue(); loadStats(); }
 
-        async function clearQueue() {
-            if (!confirm('Delete ALL pending URLs from the queue?')) return;
-            await api({ action: 'clearQueue' });
-            loadQueue();
-            loadStats();
-        }
-
-        // Users
         async function loadUsers() {
             if (currentUser.role !== 'admin') return;
-            
             const data = await api({ action: 'getUsers', username: currentUser.username });
             allUsers = data.users || [];
-            
             const tbody = document.getElementById('usersTable');
             tbody.innerHTML = allUsers.map(u => `
                 <tr>
                     <td><strong>${escapeHtml(u.username)}</strong> ${u.username === currentUser.username ? '(you)' : ''}</td>
                     <td>
-                        <select class="role-select" onchange="changeRole('${u.objectId}', this.value)" 
-                                ${u.username === currentUser.username ? 'disabled' : ''}>
-                            <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Viewer</option>
-                            <option value="editor" ${u.role === 'editor' ? 'selected' : ''}>Editor</option>
-                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        <select class="role-select" onchange="changeRole('${u.objectId}', this.value)" ${u.username === currentUser.username ? 'disabled' : ''}>
+                            <option value="viewer" ${u.role==='viewer'?'selected':''}>Viewer</option>
+                            <option value="editor" ${u.role==='editor'?'selected':''}>Editor</option>
+                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
                         </select>
                     </td>
-                    <td style="font-size:0.8rem;color:var(--text-secondary)">
-                        ${u.role === 'admin' ? 'Full access' : u.role === 'editor' ? 'Upload URLs, view data' : 'View only'}
-                    </td>
+                    <td style="font-size:0.8rem;color:var(--text-secondary)">${u.role==='admin'?'Full access':u.role==='editor'?'Upload URLs, view data':'View only'}</td>
                     <td style="font-size:0.8rem">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
-                    <td>
-                        ${u.username !== currentUser.username ? 
-                            `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.objectId}')">Remove</button>` : 
-                            ''}
-                    </td>
+                    <td>${u.username !== currentUser.username ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.objectId}')">Remove</button>` : ''}</td>
                 </tr>
             `).join('');
         }
 
-        async function changeRole(objectId, newRole) {
-            await api({ 
-                action: 'changeRole', 
-                targetId: objectId, 
-                newRole: newRole,
-                username: currentUser.username 
-            });
-            loadUsers();
-        }
+        async function changeRole(objectId, newRole) { await api({ action: 'changeRole', targetId: objectId, newRole, username: currentUser.username }); loadUsers(); }
+        async function deleteUser(objectId) { if (!confirm('Remove this user?')) return; await api({ action: 'deleteUser', targetId: objectId, username: currentUser.username }); loadUsers(); }
 
-        async function deleteUser(objectId) {
-            if (!confirm('Remove this user?')) return;
-            await api({ action: 'deleteUser', targetId: objectId, username: currentUser.username });
-            loadUsers();
-        }
-
-        // Index browser
         async function loadIndexPages() {
             const data = await api({ action: 'getIndexPages' });
             indexPages = data.pages || [];
+            document.getElementById('indexTotal').textContent = indexPages.length;
             renderIndexPages();
         }
 
-        function filterIndexPages() {
-            renderIndexPages();
-        }
+        function filterIndexPages() { renderIndexPages(); }
 
         function renderIndexPages() {
             const filter = (document.getElementById('indexSearch').value || '').toLowerCase();
-            const filtered = indexPages.filter(p => 
-                !filter || 
-                (p.url || '').toLowerCase().includes(filter) || 
-                (p.title || '').toLowerCase().includes(filter)
-            );
-            
+            const filtered = indexPages.filter(p => !filter || (p.url||'').toLowerCase().includes(filter) || (p.title||'').toLowerCase().includes(filter));
             const tbody = document.getElementById('indexTable');
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">No pages found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No pages found</td></tr>';
             } else {
-                tbody.innerHTML = filtered.slice(0, 100).map((p, i) => `
+                tbody.innerHTML = filtered.slice(0, 200).map((p, i) => `
                     <tr>
-                        <td>${i + 1}</td>
-                        <td>${escapeHtml(p.title || 'Untitled')}</td>
-                        <td class="url-cell" title="${escapeHtml(p.url)}">
-                            <a href="${escapeHtml(p.url)}" target="_blank" style="color:var(--accent)">${escapeHtml(p.url)}</a>
-                        </td>
-                        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.snippet || '')}</td>
+                        <td>${i+1}</td>
+                        <td>${escapeHtml(p.title||'Untitled')}</td>
+                        <td class="url-cell" title="${escapeHtml(p.url)}"><a href="${escapeHtml(p.url)}" target="_blank" style="color:var(--accent)">${escapeHtml(p.url)}</a></td>
+                        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.snippet||'')}</td>
                     </tr>
                 `).join('');
             }
         }
 
-        // Stats
         async function loadStats() {
             const data = await api({ action: 'getStats' });
-            document.getElementById('statIndexed').textContent = (data.indexed || 0).toLocaleString();
-            document.getElementById('statQueue').textContent = (data.queue || 0).toLocaleString();
-            document.getElementById('statUsers').textContent = (data.users || 0).toLocaleString();
-            document.getElementById('statTerms').textContent = (data.terms || 0).toLocaleString();
+            
+            // Get real numbers from the API response
+            const indexed = data.indexed || 0;
+            const queue = data.queue || 0;
+            const terms = data.terms || 0;
+            const users = data.users || 0;
+            
+            // Animate the stat cards
+            function animateValue(id, value) {
+                const el = document.getElementById(id);
+                const card = el.closest('.stat-card');
+                el.textContent = value.toLocaleString();
+                if (card) {
+                    card.classList.add('pulse');
+                    setTimeout(() => card.classList.remove('pulse'), 500);
+                }
+            }
+            
+            animateValue('statIndexed', indexed);
+            animateValue('statQueue', queue);
+            animateValue('statTerms', terms);
+            animateValue('statUsers', users);
         }
 
         function showMsg(id, text, type) {
@@ -651,7 +524,7 @@
             el.textContent = text;
             el.className = `msg msg-${type}`;
             el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 5000);
+            setTimeout(() => { el.style.display = 'none'; }, 6000);
         }
 
         function escapeHtml(text) {
@@ -660,7 +533,9 @@
             return div.innerHTML;
         }
 
-        // Init
+        // Auto-refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+
         checkAuth();
         loadStats();
     </script>
