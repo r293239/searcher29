@@ -1,0 +1,25 @@
+name: Run Crawler
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # Every 6 hours
+  workflow_dispatch:          # Manual trigger from GitHub
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install -r crawler/requirements.txt
+      
+      - name: Run crawler
+        run: python crawler/crawler.py
