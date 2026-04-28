@@ -48,7 +48,6 @@
         .dropdown-item.danger { color: var(--red); }
         .dropdown-item.danger:hover { background: var(--red-bg); }
 
-        /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
         .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; box-shadow: var(--shadow-lg); }
@@ -80,10 +79,22 @@
         .search-box input { width: 100%; padding: 18px 24px; font-size: 1.15rem; background: var(--input-bg); border: 2px solid transparent; color: var(--text); border-radius: 12px; outline: none; transition: all 0.3s ease; }
         .search-box input::placeholder { color: var(--text-secondary); }
         .search-box input:focus { border-color: var(--accent); background: var(--input-focus); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
-        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-top: 4px; box-shadow: var(--shadow-lg); z-index: 10; display: none; overflow: hidden; }
+
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-top: 4px; box-shadow: var(--shadow-lg); z-index: 10; display: none; overflow: hidden; max-height: 380px; overflow-y: auto; }
         .suggestions.active { display: block; }
-        .suggestion-item { padding: 12px 20px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 0.95rem; justify-content: space-between; }
-        .suggestion-item:hover, .suggestion-item.active { background: var(--accent-light); color: var(--accent); }
+        .suggestions-header { padding: 8px 16px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); background: var(--bg-secondary); border-bottom: 1px solid var(--border); font-weight: 600; }
+        .suggestion-item { padding: 10px 16px; cursor: pointer; transition: background 0.1s; display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 0.9rem; border-bottom: 1px solid var(--border); }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover, .suggestion-item.active { background: var(--accent-light); }
+        .suggestion-item .suggestion-icon { font-size: 0.9rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .suggestion-item .suggestion-text { flex: 1; }
+        .suggestion-item .suggestion-badge { font-size: 0.7rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 2px 8px; border-radius: 8px; flex-shrink: 0; }
+        .suggestion-item .suggestion-arrow { color: var(--accent); font-size: 0.8rem; opacity: 0; transition: opacity 0.1s; }
+        .suggestion-item:hover .suggestion-arrow { opacity: 1; }
+        .suggestion-item .remove-history { cursor: pointer; padding: 2px 4px; opacity: 0; transition: opacity 0.1s; font-size: 0.8rem; }
+        .suggestion-item:hover .remove-history { opacity: 0.6; }
+        .suggestion-item .remove-history:hover { opacity: 1; color: var(--red); }
+
         .btn-search { padding: 18px 28px; font-size: 1.1rem; background: var(--gradient); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; white-space: nowrap; }
         .btn-search:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(99,102,241,0.4); }
         .btn-lucky { padding: 18px 24px; font-size: 1.05rem; background: var(--bg-secondary); color: var(--text); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; }
@@ -212,15 +223,13 @@
         let displayedCount = 10;
         let selectedIndex = -1;
         let totalIndexed = 0;
+        let suggestionIndex = -1;
+        let currentSuggestions = [];
 
         // Load user
         function loadUser() {
             const stored = localStorage.getItem('search_user');
-            if (stored) {
-                currentUser = JSON.parse(stored);
-                updateUI();
-                loadUserData();
-            }
+            if (stored) { currentUser = JSON.parse(stored); updateUI(); loadUserData(); }
         }
         function updateUI() {
             if (currentUser) {
@@ -235,7 +244,6 @@
             }
         }
 
-        // Login modal
         function showLoginModal() { document.getElementById('loginModal').classList.add('active'); document.getElementById('loginUsername').focus(); }
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); document.getElementById('loginError').style.display = 'none'; }
         
@@ -245,49 +253,27 @@
             const err = document.getElementById('loginError');
             if (!username || !password) { err.textContent = 'Fill in all fields'; err.style.display = 'block'; return; }
             try {
-                const res = await fetch('/api/index', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'login', username, password })
-                });
+                const res = await fetch('/api/index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', username, password }) });
                 const data = await res.json();
                 if (data.success) {
                     currentUser = data.user;
                     localStorage.setItem('search_user', JSON.stringify(currentUser));
-                    updateUI();
-                    closeLoginModal();
+                    updateUI(); closeLoginModal();
                     document.getElementById('loginUsername').value = '';
                     document.getElementById('loginPassword').value = '';
                     loadUserData();
-                } else {
-                    err.textContent = data.error || 'Login failed';
-                    err.style.display = 'block';
-                }
+                } else { err.textContent = data.error || 'Login failed'; err.style.display = 'block'; }
             } catch(e) { err.textContent = 'Connection failed'; err.style.display = 'block'; }
         }
 
-        function signOut() {
-            localStorage.removeItem('search_user');
-            currentUser = null;
-            searchHistory = [];
-            savedPages = [];
-            updateUI();
-            document.getElementById('userDropdown').classList.remove('active');
-        }
-
+        function signOut() { localStorage.removeItem('search_user'); currentUser = null; searchHistory = []; savedPages = []; updateUI(); document.getElementById('userDropdown').classList.remove('active'); }
         function toggleDropdown() { document.getElementById('userDropdown').classList.toggle('active'); }
         document.addEventListener('click', (e) => { if (!e.target.closest('.user-pill') && !e.target.closest('.user-dropdown')) document.getElementById('userDropdown').classList.remove('active'); });
-        document.getElementById('loginPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') doLogin(); });
 
-        // User data
         async function loadUserData() {
             if (!currentUser) return;
             try {
-                const res = await fetch('/api/index', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'getUserData', userId: currentUser.username })
-                });
+                const res = await fetch('/api/index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getUserData', userId: currentUser.username }) });
                 const data = await res.json();
                 if (data.history) searchHistory = data.history;
                 if (data.saved) savedPages = data.saved;
@@ -295,36 +281,29 @@
         }
         async function saveSearchQuery(query) {
             if (!currentUser || !query) return;
+            searchHistory = searchHistory.filter(h => h.query !== query);
             searchHistory.unshift({ query, time: Date.now() });
             if (searchHistory.length > 50) searchHistory = searchHistory.slice(0, 50);
-            try {
-                await fetch('/api/index', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'saveHistory', userId: currentUser.username, history: searchHistory })
-                });
-            } catch(e) {}
+            try { await fetch('/api/index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'saveHistory', userId: currentUser.username, history: searchHistory }) }); } catch(e) {}
+        }
+        async function removeHistoryItem(query) {
+            searchHistory = searchHistory.filter(h => h.query !== query);
+            try { await fetch('/api/index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'saveHistory', userId: currentUser.username, history: searchHistory }) }); } catch(e) {}
+            updateSuggestions(document.getElementById('q').value);
         }
         async function toggleSavePage(url, title, snippet) {
             if (!currentUser) { showLoginModal(); return; }
             const exists = savedPages.findIndex(p => p.url === url);
             if (exists >= 0) savedPages.splice(exists, 1);
             else { savedPages.unshift({ url, title, snippet, savedAt: Date.now() }); if (savedPages.length > 100) savedPages = savedPages.slice(0, 100); }
-            try {
-                await fetch('/api/index', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'savePages', userId: currentUser.username, saved: savedPages })
-                });
-            } catch(e) {}
+            try { await fetch('/api/index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'savePages', userId: currentUser.username, saved: savedPages }) }); } catch(e) {}
             renderResults();
         }
         function showSavedPages() {
             document.getElementById('userDropdown').classList.remove('active');
             if (savedPages.length === 0) { allResults = []; renderResults(); document.getElementById('stats').innerHTML = '📑 No saved pages yet.'; return; }
             allResults = savedPages.map(p => ({ url: p.url, title: p.title, snippet: p.snippet, score: 1, saved: true }));
-            currentQuery = ''; displayedCount = 10;
-            renderResults();
+            currentQuery = ''; displayedCount = 10; renderResults();
             document.getElementById('stats').innerHTML = `📑 <strong>${savedPages.length}</strong> saved pages`;
             document.getElementById('header').classList.add('compact');
         }
@@ -336,7 +315,6 @@
             document.getElementById('header').classList.add('compact');
         }
 
-        // Search
         async function fetchIndexSize() {
             try {
                 const res = await fetch('/api/index?q=');
@@ -379,7 +357,7 @@
             const keyboardHint = document.getElementById('keyboardHint');
             if (allResults.length === 0) {
                 stats.innerHTML = ''; keyboardHint.style.display = 'none'; loadMoreDiv.style.display = 'none';
-                resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h2>${currentQuery ? `No results for "${escapeHtml(currentQuery)}"` : 'Search something!'}</h2></div>`;
+                resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h2>${currentQuery ? `No results for "${escapeHtml(currentQuery)}"` : 'Search something!'}</h2><p>${currentQuery ? 'Try different keywords or add new URLs below.' : 'Discover the web with our auto-crawling search engine.'}</p></div>`;
                 return;
             }
             stats.innerHTML = `About <strong>${allResults.length}</strong> results`;
@@ -390,9 +368,7 @@
                 <div class="result" tabindex="0" data-index="${i}" onclick="openResult(${i})" onmouseenter="selectResult(${i})">
                     <div class="result-header">
                         <a href="${escapeHtml(r.url)}" class="result-title" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escapeHtml(r.title || 'Untitled')}</a>
-                        <div class="result-actions">
-                            <button class="btn-save ${r.saved ? 'saved' : ''}" onclick="event.stopPropagation();toggleSavePage('${escapeHtml(r.url)}','${escapeHtml(r.title||'')}','${escapeHtml(r.snippet||'')}')">${r.saved ? '💾' : '📑'}</button>
-                        </div>
+                        <div class="result-actions"><button class="btn-save ${r.saved ? 'saved' : ''}" onclick="event.stopPropagation();toggleSavePage('${escapeHtml(r.url)}','${escapeHtml(r.title||'')}','${escapeHtml(r.snippet||'')}')">${r.saved ? '💾' : '📑'}</button></div>
                     </div>
                     <div class="result-url">🔗 ${escapeHtml(r.url)}</div>
                     <div class="result-snippet">${highlightTerms(escapeHtml(r.snippet||''), words)}</div>
@@ -409,22 +385,223 @@
         function loadMore() { displayedCount += 10; if (displayedCount > allResults.length) displayedCount = allResults.length; renderResults(); }
         function selectResult(i) { document.querySelectorAll('.result.selected').forEach(e=>e.classList.remove('selected')); selectedIndex=i; const el=document.querySelector(`.result[data-index="${i}"]`); if(el){el.classList.add('selected');el.focus();} }
         function openResult(i) { if(i>=0&&i<allResults.length) window.open(allResults[i].url,'_blank'); }
-        async function feelingLucky() { if(!document.getElementById('q').value.trim()){ document.getElementById('q').value=['technology','science','internet','programming','web'][Math.floor(Math.random()*5)]; } await search(); if(allResults.length>0) window.open(allResults[Math.floor(Math.random()*Math.min(5,allResults.length))].url,'_blank'); }
+        async function feelingLucky() { if(!document.getElementById('q').value.trim()){ document.getElementById('q').value=['technology','science','internet','programming','web','computer','data','code'][Math.floor(Math.random()*8)]; } await search(); if(allResults.length>0) window.open(allResults[Math.floor(Math.random()*Math.min(5,allResults.length))].url,'_blank'); }
         function resetSearch() { document.getElementById('q').value=''; document.getElementById('results').innerHTML=''; document.getElementById('stats').innerHTML=''; document.getElementById('loadMore').style.display='none'; document.getElementById('keyboardHint').style.display='none'; document.getElementById('header').classList.remove('compact'); allResults=[]; currentQuery=''; selectedIndex=-1; document.getElementById('q').focus(); }
 
-        // Suggestions
-        let st; document.getElementById('q').addEventListener('input',function(){ clearTimeout(st); const v=this.value.trim(); const sd=document.getElementById('suggestions'); if(!v||v.length<2){sd.classList.remove('active');return;} st=setTimeout(()=>{ const s=[]; if(currentUser&&searchHistory.length>0){ searchHistory.filter(h=>h.query.toLowerCase().includes(v.toLowerCase())).slice(0,3).forEach(m=>s.push({icon:'🕐',text:m.query,badge:'history'})); } s.push({icon:'🔍',text:v},{icon:'📖',text:v+' wikipedia'},{icon:'💻',text:v+' tutorial'},{icon:'📰',text:v+' news'}); sd.innerHTML=s.map(x=>`<div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(x.text)}')"><span>${x.icon} ${escapeHtml(x.text)}</span>${x.badge?`<span style="font-size:0.7rem;opacity:0.7">${x.badge}</span>`:''}</div>`).join(''); sd.classList.add('active'); },200); });
-        function selectSuggestion(t){ document.getElementById('q').value=t; document.getElementById('suggestions').classList.remove('active'); search(); }
-        document.addEventListener('click',e=>{if(!e.target.closest('.search-input-wrapper'))document.getElementById('suggestions').classList.remove('active');});
+        // ===== SMART SUGGESTIONS =====
+        let suggestTimeout;
+        document.getElementById('q').addEventListener('input', function() {
+            clearTimeout(suggestTimeout);
+            const val = this.value.trim();
+            if (!val || val.length < 1) {
+                document.getElementById('suggestions').classList.remove('active');
+                suggestionIndex = -1;
+                return;
+            }
+            suggestTimeout = setTimeout(() => updateSuggestions(val), 150);
+        });
 
-        // Keyboard
-        document.addEventListener('keydown',e=>{
-            if(allResults.length===0)return;
-            if(e.key==='ArrowDown'){e.preventDefault();if(selectedIndex<Math.min(displayedCount,allResults.length)-1)selectResult(selectedIndex+1);}
-            else if(e.key==='ArrowUp'){e.preventDefault();if(selectedIndex>0)selectResult(selectedIndex-1);else if(selectedIndex===0){document.querySelectorAll('.result.selected').forEach(el=>el.classList.remove('selected'));selectedIndex=-1;document.getElementById('q').focus();}}
-            else if(e.key==='Enter'&&selectedIndex>=0){e.preventDefault();openResult(selectedIndex);}
-            else if(e.key==='Escape'){document.querySelectorAll('.result.selected').forEach(el=>el.classList.remove('selected'));selectedIndex=-1;document.getElementById('q').focus();}
-            else if(e.key==='/'&&document.activeElement!==document.getElementById('q')&&document.activeElement!==document.getElementById('url')){e.preventDefault();document.getElementById('q').focus();}
+        function updateSuggestions(val) {
+            currentSuggestions = [];
+            const v = val.toLowerCase();
+            const sd = document.getElementById('suggestions');
+            
+            // Section 1: Search History (exact matches first)
+            let historyMatches = [];
+            if (currentUser && searchHistory.length > 0) {
+                historyMatches = searchHistory
+                    .filter(h => h.query.toLowerCase().includes(v))
+                    .slice(0, 4);
+                
+                // Sort: exact match first, then starts with, then contains
+                historyMatches.sort((a, b) => {
+                    const aExact = a.query.toLowerCase() === v;
+                    const bExact = b.query.toLowerCase() === v;
+                    if (aExact && !bExact) return -1;
+                    if (!aExact && bExact) return 1;
+                    const aStarts = a.query.toLowerCase().startsWith(v);
+                    const bStarts = b.query.toLowerCase().startsWith(v);
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    return b.time - a.time;
+                });
+            }
+            
+            // Section 2: Smart completions
+            const completions = generateCompletions(val);
+            
+            // Build suggestions
+            let html = '';
+            
+            if (historyMatches.length > 0) {
+                html += '<div class="suggestions-header">🕐 Recent Searches</div>';
+                historyMatches.forEach(h => {
+                    currentSuggestions.push({ type: 'history', text: h.query });
+                    html += `<div class="suggestion-item" data-idx="${currentSuggestions.length-1}" onclick="selectSuggestion('${escapeHtml(h.query)}')" onmouseenter="highlightSuggestion(${currentSuggestions.length-1})">
+                        <span class="suggestion-icon">🕐</span>
+                        <span class="suggestion-text">${boldMatch(escapeHtml(h.query), v)}</span>
+                        <span class="suggestion-badge">${timeAgo(h.time)}</span>
+                        <span class="remove-history" onclick="event.stopPropagation();removeHistoryItem('${escapeHtml(h.query)}')" title="Remove">✕</span>
+                    </div>`;
+                });
+            }
+            
+            if (completions.length > 0) {
+                html += '<div class="suggestions-header">💡 Suggestions</div>';
+                completions.forEach(c => {
+                    if (historyMatches.some(h => h.query.toLowerCase() === c.toLowerCase())) return;
+                    currentSuggestions.push({ type: 'completion', text: c });
+                    html += `<div class="suggestion-item" data-idx="${currentSuggestions.length-1}" onclick="selectSuggestion('${escapeHtml(c)}')" onmouseenter="highlightSuggestion(${currentSuggestions.length-1})">
+                        <span class="suggestion-icon">🔍</span>
+                        <span class="suggestion-text">${boldMatch(escapeHtml(c), v)}</span>
+                        <span class="suggestion-arrow">↗</span>
+                    </div>`;
+                });
+            }
+            
+            if (!html) {
+                sd.classList.remove('active');
+                return;
+            }
+            
+            sd.innerHTML = html;
+            sd.classList.add('active');
+            suggestionIndex = -1;
+        }
+
+        function generateCompletions(val) {
+            const v = val.toLowerCase();
+            const completions = [];
+            
+            // Common prefixes
+            const prefixes = ['what is', 'how to', 'best', 'top', 'free', 'learn', 'why', 'when'];
+            const suffixes = ['tutorial', 'guide', 'examples', 'vs', 'definition', 'explained', 'wiki', 'news', '2024', '2025'];
+            const categories = ['technology', 'science', 'programming', 'python', 'javascript', 'web', 'ai', 'data', 'code', 'design', 'internet', 'computer', 'software', 'hardware'];
+            
+            // If it's a short word, suggest categories
+            if (v.length <= 3) {
+                categories.forEach(c => {
+                    if (c.startsWith(v) && c !== v) completions.push(c);
+                });
+            }
+            
+            // Prefix completions
+            prefixes.forEach(p => {
+                const full = `${p} ${v}`;
+                if (full.toLowerCase().startsWith(v)) return;
+                completions.push(full);
+            });
+            
+            // Suffix completions
+            suffixes.forEach(s => {
+                completions.push(`${v} ${s}`);
+            });
+            
+            // "Search X on Wikipedia" style
+            completions.push(`${v} wikipedia`);
+            
+            return [...new Set(completions)].slice(0, 8);
+        }
+
+        function boldMatch(text, query) {
+            if (!query) return text;
+            const lower = text.toLowerCase();
+            const idx = lower.indexOf(query.toLowerCase());
+            if (idx === -1) return text;
+            return text.substring(0, idx) + '<strong>' + text.substring(idx, idx + query.length) + '</strong>' + text.substring(idx + query.length);
+        }
+
+        function timeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return `${Math.floor(hours / 24)}d ago`;
+        }
+
+        function highlightSuggestion(idx) {
+            document.querySelectorAll('.suggestion-item.active').forEach(el => el.classList.remove('active'));
+            suggestionIndex = idx;
+            const el = document.querySelector(`.suggestion-item[data-idx="${idx}"]`);
+            if (el) el.classList.add('active');
+        }
+
+        function selectSuggestion(text) {
+            document.getElementById('q').value = text;
+            document.getElementById('suggestions').classList.remove('active');
+            suggestionIndex = -1;
+            search();
+        }
+
+        // Close suggestions on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-input-wrapper')) {
+                document.getElementById('suggestions').classList.remove('active');
+                suggestionIndex = -1;
+            }
+        });
+
+        // Keyboard navigation for search + suggestions
+        document.addEventListener('keydown', (e) => {
+            const suggestionsActive = document.getElementById('suggestions').classList.contains('active');
+            
+            // Arrow keys in suggestions
+            if (suggestionsActive && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                e.preventDefault();
+                if (e.key === 'ArrowDown') {
+                    suggestionIndex = Math.min(suggestionIndex + 1, currentSuggestions.length - 1);
+                } else {
+                    suggestionIndex = Math.max(suggestionIndex - 1, -1);
+                }
+                
+                document.querySelectorAll('.suggestion-item.active').forEach(el => el.classList.remove('active'));
+                if (suggestionIndex >= 0) {
+                    const el = document.querySelector(`.suggestion-item[data-idx="${suggestionIndex}"]`);
+                    if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+                }
+                return;
+            }
+            
+            // Enter on suggestion
+            if (suggestionsActive && e.key === 'Enter' && suggestionIndex >= 0) {
+                e.preventDefault();
+                const suggestion = currentSuggestions[suggestionIndex];
+                if (suggestion) selectSuggestion(suggestion.text);
+                return;
+            }
+            
+            // Enter in search box
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('q')) {
+                if (suggestionsActive && suggestionIndex >= 0) {
+                    const suggestion = currentSuggestions[suggestionIndex];
+                    if (suggestion) selectSuggestion(suggestion.text);
+                } else {
+                    search();
+                }
+                return;
+            }
+            
+            // Result navigation
+            if (allResults.length === 0) return;
+            if (e.key === 'ArrowDown' && !suggestionsActive) {
+                e.preventDefault();
+                if (selectedIndex < Math.min(displayedCount, allResults.length) - 1) selectResult(selectedIndex + 1);
+            } else if (e.key === 'ArrowUp' && !suggestionsActive) {
+                e.preventDefault();
+                if (selectedIndex > 0) selectResult(selectedIndex - 1);
+                else if (selectedIndex === 0) { document.querySelectorAll('.result.selected').forEach(el=>el.classList.remove('selected')); selectedIndex=-1; document.getElementById('q').focus(); }
+            } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault(); openResult(selectedIndex);
+            } else if (e.key === 'Escape') {
+                document.querySelectorAll('.result.selected').forEach(el=>el.classList.remove('selected'));
+                selectedIndex=-1;
+                document.getElementById('suggestions').classList.remove('active');
+                document.getElementById('q').focus();
+            } else if (e.key === '/' && document.activeElement !== document.getElementById('q') && document.activeElement !== document.getElementById('url')) {
+                e.preventDefault(); document.getElementById('q').focus();
+            }
         });
 
         // Upload
