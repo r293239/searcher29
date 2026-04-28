@@ -23,7 +23,6 @@ FETCH_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; SearchBot/1.0)"
 }
 
-# Only used as bootstrap if index is completely empty
 BOOTSTRAP_URLS = [
     "https://en.wikipedia.org/wiki/World_Wide_Web",
     "https://en.wikipedia.org/wiki/Internet",
@@ -42,23 +41,23 @@ class WebFinder:
         self.queued_urls = set()
     
     def load_state(self):
-        """Load current index and queue to avoid duplicates"""
-        # Get indexed URLs
+        """Load ALL index entries to get complete URL list"""
         resp = requests.get(
             f"{PARSE_URL}/classes/Index",
-            params={"order": "-createdAt", "limit": 1},
+            params={"order": "-createdAt", "limit": 10},
             headers=HEADERS
         )
         if resp.status_code == 200:
             results = resp.json().get('results', [])
-            if results and results[0].get('data'):
-                try:
-                    index_data = json.loads(results[0]['data'])
-                    self.crawled_urls = set(index_data.get('urls', []))
-                except:
-                    pass
+            for idx_entry in results:
+                if idx_entry.get('data'):
+                    try:
+                        index_data = json.loads(idx_entry['data'])
+                        urls = index_data.get('urls', [])
+                        self.crawled_urls.update(urls)
+                    except:
+                        pass
         
-        # Get queued URLs
         where = json.dumps({"status": "pending"})
         resp = requests.get(
             f"{PARSE_URL}/classes/CrawlQueue",
@@ -84,13 +83,11 @@ class WebFinder:
                 full = urljoin(final_url, a['href'])
                 parsed = urlparse(full)
                 
-                # Skip non-http, same-page anchors, mailto, tel
                 if parsed.scheme not in ('http', 'https'):
                     continue
                 if not parsed.netloc:
                     continue
                 
-                # Skip obvious non-content files
                 path = parsed.path.lower()
                 skip_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.css', 
                                    '.js', '.pdf', '.zip', '.mp4', '.mp3', '.ico', 
@@ -98,9 +95,12 @@ class WebFinder:
                 if any(path.endswith(ext) for ext in skip_extensions):
                     continue
                 
-                # Normalize URL (remove fragment)
                 clean_url = full.split('#')[0]
                 links.append(clean_url)
+            
+            # Also add the final URL itself (after redirects)
+            if final_url not in links:
+                links.insert(0, final_url)
             
             return links
         except Exception as e:
@@ -121,13 +121,13 @@ class WebFinder:
                 self.new_urls.add(link)
                 
                 domain = urlparse(link).netloc
-                if domain not in self.new_domains:
+                if domain and domain not in self.new_domains:
                     self.new_domains.add(domain)
         
         if new_links:
             print(f"    → Found {len(new_links)} new links (from {len(links)} total)")
         
-        time.sleep(0.5)
+        time.sleep(0.3)
         return new_links
     
     def find_from_index(self, count=5):
@@ -155,7 +155,6 @@ class WebFinder:
         
         all_new = []
         for domain in domains[:max_domains]:
-            # Try the homepage
             for scheme in ['https://', 'http://']:
                 homepage = f"{scheme}{domain}/"
                 if homepage not in self.crawled_urls and homepage not in self.queued_urls:
@@ -163,8 +162,7 @@ class WebFinder:
                     all_new.extend(new)
                     break
             
-            # Try common paths
-            common_paths = ['/blog', '/news', '/articles', '/posts', '/about', '/wiki']
+            common_paths = ['/blog', '/news', '/articles', '/posts', '/about']
             path = random.choice(common_paths)
             path_url = f"https://{domain}{path}"
             if path_url not in self.crawled_urls and path_url not in self.queued_urls:
@@ -178,17 +176,16 @@ class WebFinder:
         if len(self.crawled_urls) > 0:
             return []
         
-        print("🌱 Index is empty! Bootstrapping from seed URLs...")
+        print("🌱 Index is empty! Bootstrapping...")
         all_new = []
         for url in BOOTSTRAP_URLS[:3]:
             new = self.expand_from_url(url)
             all_new.extend(new)
-        
         return all_new
     
     def queue_all_found(self):
         """Add all discovered URLs to the crawl queue"""
-        urls_to_queue = list(self.new_urls)[:200]  # Max 200 per run
+        urls_to_queue = list(self.new_urls)[:200]
         
         count = 0
         for url in urls_to_queue:
@@ -205,59 +202,51 @@ class WebFinder:
                     self.queued_urls.add(url)
             except:
                 pass
-        
         return count
     
     def run(self):
-        """Main discovery routine"""
         print("=" * 50)
         print("🔍 WEB FINDER - Organic Discovery")
         print("=" * 50)
         
         self.load_state()
-        
         total_found = 0
         
-        # Step 1: Bootstrap if empty
         print("\n📍 Step 1: Bootstrap check...")
         bootstrapped = self.bootstrap_if_empty()
         if bootstrapped:
             total_found += len(bootstrapped)
             print(f"  Bootstrapped {len(bootstrapped)} URLs")
         
-        # Step 2: Expand from existing index pages
         print("\n🔗 Step 2: Expanding from indexed pages...")
-        expanded = self.find_from_index(count=5)
+        expanded = self.find_from_index(count=8)
         total_found += len(expanded)
         print(f"  Found {len(expanded)} new URLs from existing index")
         
-        # Step 3: Explore newly discovered domains
         if self.new_domains:
             print(f"\n🌍 Step 3: Exploring {min(10, len(self.new_domains))} newly discovered domains...")
             domain_links = self.find_from_external_domains(max_domains=10)
             total_found += len(domain_links)
             print(f"  Found {len(domain_links)} new URLs from new domains")
         
-        # Step 4: Deep dive - pick some new URLs and explore them too
         if self.new_urls and total_found < 50:
             print(f"\n🔬 Step 4: Deep diving into discovered URLs...")
             sample = list(self.new_urls)
             random.shuffle(sample)
-            for url in sample[:3]:
+            for url in sample[:5]:
                 new = self.expand_from_url(url)
                 total_found += len(new)
         
-        # Queue everything
         print("\n📋 Queuing discovered URLs...")
         queued = self.queue_all_found()
         
         print("\n" + "=" * 50)
         print(f"📊 SUMMARY")
         print(f"   New URLs found: {len(self.new_urls)}")
-        print(f"   New domains discovered: {len(self.new_domains)}")
-        print(f"   URLs queued for crawling: {queued}")
-        print(f"   Total indexed: {len(self.crawled_urls)}")
-        print(f"   Total in queue: {len(self.queued_urls)}")
+        print(f"   New domains: {len(self.new_domains)}")
+        print(f"   Queued: {queued}")
+        print(f"   Indexed: {len(self.crawled_urls)}")
+        print(f"   In queue: {len(self.queued_urls)}")
         print("=" * 50)
 
 
